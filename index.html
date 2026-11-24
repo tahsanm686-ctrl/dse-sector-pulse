@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<link rel="icon" href="data:," />
+<title>DSE Sector Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#05080f; --text:#eef1f8; --muted:#9aa5bf; --muted2:#6f7a94;
+    --green:#2fe07a; --red:#ff5f7e; --flat:#8b98b4;
+    --accent:#8b9bff;
+    --glass-brd:rgba(255,255,255,.13);
+  }
+  *{box-sizing:border-box}
+  html{color-scheme:dark}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Hind Siliguri",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .glow{position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(900px 480px at 12% -8%, rgba(24,140,74,.34) 0%, rgba(24,140,74,0) 60%),
+      radial-gradient(1000px 560px at 88% 0%, rgba(178,32,66,.30) 0%, rgba(178,32,66,0) 62%),
+      radial-gradient(1100px 700px at 50% 115%, rgba(24,42,110,.38) 0%, rgba(24,42,110,0) 65%),
+      linear-gradient(180deg,#070c1a 0%, #05080f 100%)}
+  button,[role="button"],input,select{min-height:2.25rem}
+  .glass{background:rgba(255,255,255,.05);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
+    border:1px solid var(--glass-brd);box-shadow:0 10px 34px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.09)}
+  .wrap{max-width:1240px;margin:0 auto;padding:28px 20px 40px}
+  .kicker{letter-spacing:.28em;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase}
+  h1{font-size:clamp(30px,4.5vw,44px);font-weight:700;margin:8px 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:15px;margin:0}
+  .sub b{color:var(--text)}
+  .toprow{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-end}
+  .breadth{min-width:280px;flex:0 1 420px}
+  .breadth .nums{display:flex;gap:22px;justify-content:flex-end;font-size:14px;color:var(--muted);flex-wrap:wrap}
+  .breadth .nums b{font-size:21px;font-weight:700;margin-right:5px}
+  .b-up{color:var(--green)} .b-dn{color:var(--red)} .b-fl{color:var(--text)} .b-gr{color:var(--flat)}
+  .bar{display:flex;height:7px;border-radius:99px;overflow:hidden;margin-top:9px;background:rgba(255,255,255,.10)}
+  .bar i{display:block;height:100%}
+  .bar .u{background:var(--green)} .bar .f{background:#5b6a8c} .bar .d{background:var(--red)}
+
+  .mkt{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:22px 0 6px}
+  .mkt .cell{border-radius:14px;padding:12px 14px}
+  .mkt .lab{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;font-weight:600}
+  .mkt .val{font-size:21px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+  .mkt .chg{font-size:13px;font-weight:600}
+  .mkt .cell .co{font-size:12.5px;color:var(--muted);margin:1px 0 3px;line-height:1.35}
+  .up{color:var(--green)} .dn{color:var(--red)} .fl{color:var(--flat)}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 14px;align-items:center}
+  .search{flex:1 1 260px;display:flex;align-items:center;border-radius:14px;padding:0 14px}
+  .search input{flex:1;background:none;border:0;outline:0;color:var(--text);font:inherit;font-size:15px;padding:10px 6px;min-height:2.5rem}
+  .search input::placeholder{color:var(--muted2)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}
+  .scard{border-radius:18px;padding:18px 18px 14px;cursor:pointer;text-align:left;width:100%;
+    color:var(--text);font:inherit;position:relative;
+    -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
+    border:1px solid var(--glass-brd);box-shadow:0 10px 34px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.10);
+    transition:transform .15s ease,border-color .15s ease}
+  .scard:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.28)}
+  .scard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .scard.g{background:linear-gradient(155deg,rgba(31,160,84,.42),rgba(9,34,24,.55) 72%)}
+  .scard.r{background:linear-gradient(155deg,rgba(190,38,72,.40),rgba(30,11,24,.55) 72%)}
+  .scard .name{font-size:12.5px;letter-spacing:.16em;font-weight:600;color:#d5ddef;text-transform:uppercase;min-height:2.4em}
+  .scard .pct{font-size:40px;font-weight:700;letter-spacing:-.01em;margin:6px 0 12px;font-variant-numeric:tabular-nums}
+  .scard .pct small{font-size:22px;font-weight:600}
+  .scard.g .pct{color:var(--green)} .scard.r .pct{color:var(--red)}
+  .scard .mini{display:flex;height:6px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.12);margin-bottom:8px}
+  .scard .mini i{display:block;height:100%}
+  .scard .counts{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+  .scard .counts .cu{color:var(--green)} .scard .counts .cd{color:var(--red)}
+  .scard .n{margin-top:9px;font-size:12px;color:var(--muted2)}
+  .scard .go{position:absolute;top:14px;right:16px;color:var(--muted2);font-size:18px}
+
+  .panel{margin-top:8px}
+  .backbtn{border-radius:12px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;min-height:2.5rem;color:var(--text)}
+  .backbtn:hover{border-color:rgba(255,255,255,.28)}
+  .phead{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin:16px 0 12px}
+  .phead h2{font-size:clamp(24px,3.4vw,34px);margin:0;font-weight:700}
+  .pstats{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+  .pstats b{color:var(--text);font-size:16px}
+  .tablewrap{overflow-x:auto;border-radius:16px}
+  table{border-collapse:collapse;width:100%;min-width:560px}
+  th,td{padding:12px 16px;text-align:left;font-size:15px}
+  th{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.10);font-weight:600}
+  td{border-bottom:1px solid rgba(255,255,255,.05);font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:rgba(255,255,255,.04)}
+  .sym{font-weight:700;letter-spacing:.02em}
+  .cname{color:var(--muted);font-size:13px}
+  .price{font-weight:700;font-size:15.5px}
+  .empty{padding:34px 18px;text-align:center;color:var(--muted)}
+  .livebar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-radius:12px;padding:8px 14px;margin-top:14px;font-size:13.5px}
+  .livebar .dot{width:9px;height:9px;border-radius:99px;background:var(--flat);flex:0 0 auto}
+  .livebar .dot.on{background:var(--green);box-shadow:0 0 0 0 rgba(47,224,122,.55);animation:pulse 1.8s infinite}
+  .livebar .dot.err{background:var(--red)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,224,122,.45)}70%{box-shadow:0 0 0 8px rgba(47,224,122,0)}100%{box-shadow:0 0 0 0 rgba(47,224,122,0)}}
+  .livebar .st{font-weight:600}
+  .livebar .meta{color:var(--muted)}
+  .livebar .sp{flex:1}
+  .livebtn{border-radius:9px;padding:5px 13px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);background:rgba(255,255,255,.07);border:1px solid var(--glass-brd);min-height:2rem}
+  .livebtn:hover{border-color:rgba(255,255,255,.3)}
+  .livebtn:disabled{opacity:.55;cursor:default}
+  .movers{margin-top:30px}
+  .movers-head{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+  .movers-head h2{font-size:clamp(22px,3vw,28px);margin:0;font-weight:700;letter-spacing:-.01em}
+  .movers-head p{margin:0;color:var(--muted);font-size:13.5px}
+  .movers-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mover-box{border-radius:18px;overflow:hidden}
+  .mover-box-hd{display:flex;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .mover-box-hd .dot2{width:10px;height:10px;border-radius:99px;flex:0 0 auto}
+  .mover-box.gain .dot2{background:var(--green);box-shadow:0 0 12px rgba(47,224,122,.55)}
+  .mover-box.lose .dot2{background:var(--red);box-shadow:0 0 12px rgba(255,95,126,.55)}
+  .mover-box-hd h3{margin:0;font-size:17px;font-weight:700}
+  .mover-box-hd .cnt{margin-left:auto;font-size:12px;letter-spacing:.12em;font-weight:700;color:var(--muted);text-transform:uppercase}
+  .mover-box.gain .cnt{color:var(--green)} .mover-box.lose .cnt{color:var(--red)}
+  .mrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.05);padding:11px 18px;cursor:pointer;color:var(--text);font:inherit}
+  .mrow:last-child{border-bottom:0}
+  .mrow:hover{background:rgba(255,255,255,.045)}
+  .mrow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .mrow .rank{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:var(--muted);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .mover-box.gain .mrow:nth-child(-n+3) .rank{background:rgba(47,224,122,.16);color:var(--green)}
+  .mover-box.lose .mrow:nth-child(-n+3) .rank{background:rgba(255,95,126,.16);color:var(--red)}
+  .mrow .minfo{flex:1;min-width:0}
+  .mrow .msym{font-weight:700;font-size:14.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mrow .mco{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+  .mrow .mright{text-align:right;flex:0 0 auto}
+  .mrow .mprice{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+  .mrow .mpct{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+  footer{margin-top:26px;color:var(--muted2);font-size:12.5px}
+  @media (max-width:760px){
+    .movers-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .wrap{padding:20px 14px 32px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+    .scard .pct{font-size:32px}
+    .breadth .nums{justify-content:flex-start}
+    th,td{padding:10px 12px}
+    .mrow{padding:10px 14px}
+    .mover-box-hd{padding:14px 14px 10px}
+  }
+  @media (prefers-reduced-motion:reduce){.scard{transition:none}.livebar .dot.on{animation:none}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="wrap">
+  <div class="kicker">Dhaka Stock Exchange · Sector Pulse</div>
+  <div class="toprow">
+    <div>
+      <h1 id="mainTitle">Sector Performance</h1>
+      <p class="sub" id="mainSub">Monday, 23 November 2026 · <b id="higherCount"></b></p>
+    </div>
+    <div class="breadth" aria-label="Market breadth, 23 November 2026">
+      <div class="nums" id="breadthNums">
+        <span><b class="b-up">117</b>advanced</span>
+        <span><b class="b-fl">75</b>unchanged</span>
+        <span><b class="b-dn">186</b>declined</span>
+      </div>
+      <div class="bar" id="breadthBar"><i class="u" style="width:31%"></i><i class="f" style="width:19.8%"></i><i class="d" style="width:49.2%"></i></div>
+    </div>
+  </div>
+
+  <div class="mkt" id="mktGrid" aria-label="Market snapshot, 23 November 2026">
+    <div class="cell glass"><div class="lab">DSEX</div><div class="val">5,557.18</div><div class="chg dn">▼ 8.41 (−0.15%)</div></div>
+    <div class="cell glass"><div class="lab">DS30</div><div class="val">2,098.20</div><div class="chg dn">▼ 2.05 (−0.10%)</div></div>
+    <div class="cell glass"><div class="lab">DSES</div><div class="val">1,076.36</div><div class="chg up">▲ 0.84 (+0.08%)</div></div>
+    <div class="cell glass"><div class="lab">Turnover</div><div class="val">৳920.8 cr</div><div class="chg dn">▼ 24.5% vs prev. day</div></div>
+    <div class="cell glass"><div class="lab">Market Cap</div><div class="val">৳6.75 lakh cr</div><div class="chg dn">▼ ৳640 cr on the day</div></div>
+  </div>
+
+  <div class="livebar glass" role="status" aria-live="polite">
+    <span class="dot" id="liveDot" aria-hidden="true"></span>
+    <span class="st" id="liveStatus">স্ন্যাপশট</span>
+    <span class="meta" id="liveMeta">DSE ডেটা · 23 Nov 2026</span>
+    <span class="sp"></span>
+    <span class="meta" id="liveCount"></span>
+    <button class="livebtn" id="liveBtn" type="button">↻ এখন আপডেট</button>
+  </div>
+
+  <div class="toolbar">
+    <label class="search glass">
+      <span aria-hidden="true">🔍</span>
+      <input id="q" type="search" placeholder="স্টক খুঁজুন — symbol বা কোম্পানির নাম" aria-label="Search stocks by symbol or company name" />
+    </label>
+  </div>
+
+  <main id="main"></main>
+
+  <footer id="footSrc">Source: DSE · 23 Nov 2026</footer>
+</div>
+
+<script>
+var SECTORS = [
+ {id:"bank", name:"Bank", total:36, stocks:[
+   ["ALARABANK","Al-Arafah Islami Bank PLC.",15.2,0.66,"৳17.39B"],["UTTARABANK","Uttara Bank PLC.",21.9,0.92,"৳26.32B"],["CITYBANK","City Bank PLC.",30.1,0.33,"৳52.48B"],["EBL","Eastern Bank PLC.",24.5,0,"৳40.27B"],["BANKASIA","Bank Asia PLC.",18.5,0,"৳25.74B"],["IFIC","IFIC Bank PLC",5,0,"৳9.61B"],["ABBANK","AB Bank PLC.",4.3,2.38,"৳3.76B"],["JAMUNABANK","Jamuna Bank PLC.",25.7,-0.39,"৳24.23B"],["BRACBANK","BRAC Bank PLC.",66.5,-0.45,"৳152.94B"],["PUBALIBANK","Pubali Bank PLC.",48.6,-0.82,"৳76.52B"],["DHAKABANK","Dhaka Bank PLC.",11.4,-0.87,"৳12.15B"],["ISLAMIBANK","Islami Bank Bangladesh PLC.",26.2,-1.5,"৳42.83B"],["DUTCHBANGL","Dutch-Bangla Bank PLC.",48.5,-0.82,"৳49.64B"],["PRIMEBANK","Prime Bank PLC.",33.1,-0.9,"৳40.70B"],["SHAHJABANK","Shahjalal Islami Bank PLC.",17.9,-0.56,"৳20.03B"],["NCCBANK","National Credit and Commerce Bank PLC.",15.8,-1.25,"৳18.48B"],["SOUTHEASTB","Southeast Bank PLC",12,-2.44,"৳17.60B"],["MTB","Mutual Trust Bank PLC.",12.4,-1.59,"৳15.26B"],["TRUSTBANK","Trust Bank PLC.",13.7,-0.72,"৳14.40B"],["UCB","United Commercial Bank PLC",8.7,0,"৳13.49B"],["MIDLANDBNK","Midland Bank PLC.",18.4,-2.13,"৳12.76B"],["NBL","National Bank PLC.",3.4,0,"৳10.95B"],["RUPALIBANK","Rupali Bank PLC.",16.1,-2.42,"৳8.05B"],["NRBCBANK","NRBC Bank PLC.",9.2,0,"৳7.62B"],["PREMIERBAN","The Premier Bank PLC.",6.1,0,"৳7.52B"],["ONEBANKPLC","One Bank PLC",6.9,1.47,"৳7.25B"],["MERCANBANK","Mercantile Bank PLC.",6.6,1.54,"৳7.19B"],["SBACBANK","SBAC Bank PLC.",5.8,0,"৳4.78B"],["NRBBANK","NRB Bank PLC.",6.6,0,"৳4.56B"],["STANDBANKL","Standard Islami Bank PLC.",3.9,0,"৳4.35B"],["EXIMBANK","Export Import Bank of Bangladesh PLC.",3,0,"৳4.34B"],["SIBL","Social Islami Bank PLC.",3,0,"৳3.42B"],["FIRSTSBANK","First Security Islami Bank PLC",1.9,0,"৳2.30B"],["GIB","Global Islami Bank PLC.",1.7,0,"৳1.68B"],["ICBIBANK","ICB Islamic Bank Limited",2.4,0,"৳1.60B"],["UNIONBANK","Union Bank PLC.",1.5,0,"৳1.55B"]]},
+ {id:"cement", name:"Cement", total:7, stocks:[
+   ["CONFIDCEM","Confidence Cement PLC",62.6,7.38,"৳5.03B"],["MEGHNACEM","Meghna Cement Mills PLC.",27.6,4.15,"৳837.10M"],["PREMIERCEM","Premier Cement Mills PLC",37.2,1.09,"৳3.88B"],["HEIDELBCEM","Heidelberg Materials Bangladesh PLC.",194.4,0.41,"৳10.94B"],["CROWNCEMNT","Crown Cement PLC",59.1,1.37,"৳8.66B"],["LHB","LafargeHolcim Bangladesh PLC.",48.6,0,"৳56.44B"],["ARAMITCEM","Aramit Cement PLC",10,0,"৳338.80M"]]},
+ {id:"ceramics", name:"Ceramics Sector", total:5, stocks:[
+   ["MONNOCERA","Monno Ceramic Industries Limited",73.2,2.66,"৳2.69B"],["STANCERAM","Standard Ceramic Industries Limited",58.7,3.35,"৳366.96M"],["RAKCERAMIC","RAK Ceramics (Bangladesh) Limited",27.2,0,"৳11.64B"],["SPCERAMICS","Shinepukur Ceramics PLC.",32.2,-0.62,"৳4.76B"],["FUWANGCER","Fu-Wang Ceramic Industry Limited",11.9,-1.65,"৳1.65B"]]},
+ {id:"engineering", name:"Engineering", total:42, stocks:[
+   ["MIRAKHTER","Mir Akhter Hossain Limited",25.9,4.02,"৳3.01B"],["RENWICKJA","Renwick, Jajneswar & Co. (Bd) Ltd.",734.6,2.13,"৳1.44B"],["IFADAUTOS","IFAD Autos PLC.",23.7,1.72,"৳6.25B"],["GOLDENSON","Golden Son Limited",9.2,1.1,"৳1.56B"],["ECABLES","Eastern Cables Limited",107.5,0.47,"৳2.82B"],["BSRMSTEEL","BSRM Steels Limited",96.2,0.31,"৳36.05B"],["WALTONHIL","Walton Hi-Tech Industries PLC",328.7,-0.18,"৳120.70B"],["AFTABAUTO","Aftab Automobiles Limited",26.6,-0.75,"৳2.83B"],["BSRMLTD","Bangladesh Steel Re-Rolling Mills Limited",95.3,-0.1,"৳28.48B"],["SINGERBD","Singer Bangladesh Limited",61.4,-0.65,"৳6.16B"],["BBSCABLES","BBS Cables PLC.",17.2,-1.15,"৳3.68B"],["GPHISPAT","GPH Ispat Limited",15.8,-1.25,"৳7.74B"],["RUNNERAUTO","Runner Automobiles PLC",54.8,-1.44,"৳6.31B"],["ATLASBANG","Atlas Bangladesh Limited",73.7,-1.73,"৳2.48B"],["KAY&QUE","Kay & Que (Bangladesh) Limited",383.9,-2.66,"৳2.76B"],["DOMINAGE","Dominage Steel Building Systems Ltd.",65.8,-0.15,"৳6.76B"],["QUASEMIND","Quasem Industries PLC.",39.8,-1.73,"৳3.50B"],["ANWARGALV","Anwar Galvanizing Limited",112.2,0,"৳3.39B"],["KDSALTD","KDS Accessories Limited",44.3,-1.34,"৳3.36B"],["NAHEEACP","Nahee Aluminum Composite Panel PLC.",36.8,3.66,"৳2.43B"],["BDLAMPS","Bangladesh Lamps PLC",221.6,-2.93,"৳2.40B"],["NPOLYMER","National Polymer Industries PLC",29.6,-1.99,"৳2.20B"],["NTLTUBES","National Tubes Limited",60.2,-0.99,"৳2.12B"],["BENGALWTL","Bengal Windsor Thermoplastics PLC.",22,-1.79,"৳2.05B"],["WMSHIPYARD","Western Marine Shipyard Limited",7.9,0,"৳1.86B"],["NAVANACNG","Navana CNG Limited",21.9,-1.79,"৳1.68B"],["SSSTEEL","S. S. Steel Limited",5.1,0,"৳1.68B"],["COPPERTECH","Coppertech Industries Ltd.",24.6,-1.6,"৳1.64B"],["RANFOUNDRY","Rangpur Foundry Limited",145.1,-1.23,"৳1.47B"],["BBS","Bangladesh Building Systems PLC.",9.2,3.37,"৳1.45B"],["YPL","Yeakin Polymer Limited",19.6,0,"৳1.44B"],["BDTHAI","Bangladesh Thai Aluminium Limited",10.8,0.93,"৳1.37B"],["SALAMCRST","S. Alam Cold Rolled Steels Limited",12.1,0,"৳1.19B"],["OIMEX","Oimex Electrode Limited",15.8,-0.63,"৳1.16B"],["MONNOAGML","Monno Agro & General Machinery Limited",255,0,"৳1.12B"],["OAL","Olympic Accessories Limited",6.3,0,"৳1.07B"],["APOLOISPAT","Appollo Ispat Complex Limited",2.3,0,"৳923.01M"],["DESHBANDHU","Deshbandhu Polymer Limited",13.5,-2.17,"৳846.84M"],["BDAUTOCA","Bangladesh Autocars Limited",187.8,-1.52,"৳824.97M"],["RSRMSTEEL","Ratanpur Steel Re-Rolling Mills Limited",6.6,-4.35,"৳698.20M"],["AZIZPIPES","Aziz Pipes Limited",94.2,-4.46,"৳527.23M"],["SHURWID","Shurwid Industries Limited",4.7,-2.08,"৳275.37M"]]},
+ {id:"fininst", name:"Financial Institutions", total:23, stocks:[
+   ["LANKABAFIN","LankaBangla Finance PLC.",12.6,4.13,"৳6.52B"],["BIFC","Bangladesh Industrial Finance Company Limited",3.6,5.88,"৳342.31M"],["ISLAMICFIN","Islamic Finance and Investment PLC.",9.1,0,"৳1.28B"],["MIDASFIN","MIDAS Financing PLC.",4.7,0,"৳676.29M"],["BAYLEASING","Bay Leasing & Investment Limited",4.4,0,"৳619.91M"],["IDLC","IDLC Finance PLC.",42.9,0,"৳19.66B"],["ICB","Investment Corporation of Bangladesh",33.5,-0.89,"৳29.31B"],["UNITEDFIN","United Finance PLC.",16.6,-1.19,"৳3.14B"],["IPDC","IPDC Finance PLC.",31.2,-1.27,"৳13.57B"],["BDFINANCE","Bangladesh Finance PLC.",10.6,-1.85,"৳2.03B"],["NHFIL","National Housing Finance PLC",27.3,-2.15,"৳3.59B"],["DBH","DBH Finance PLC.",38.6,-2.77,"৳8.05B"],["UTTARAFIN","Uttara Finance and Investments Limited",10.5,-0.94,"৳1.39B"],["UNIONCAP","Union Capital Limited",5.1,0,"৳880.13M"],["PRIMEFIN","Prime Finance & Investment Limited",2.6,0,"৳709.58M"],["PHOENIXFIN","Phoenix Finance & Investments Limited",3.5,2.94,"৳563.97M"],["GSPFINANCE","GSP Finance Company (Bangladesh) PLC",3,-3.23,"৳486.91M"],["ILFSL","International Leasing and Financial Services Limited",2.1,0,"৳465.80M"],["FIRSTFIN","First Finance PLC",4,2.56,"৳462.32M"],["PLFSL","People's Leasing and Financial Services Limited",1.6,0,"৳456.70M"],["FASFIN","FAS Finance & Investment Limited",2.5,0,"৳372.69M"],["FAREASTFIN","Fareast Finance & Investment Limited",2.1,0,"৳344.53M"],["PREMIERLEA","Premier Leasing & Finance Limited",1.9,5.56,"৳239.35M"]]},
+ {id:"food", name:"Food & Allied", total:21, stocks:[
+   ["LOVELLO","Taufika Foods and Lovello Ice-Cream PLC",47.6,5.54,"৳4.43B"],["OLYMPIC","Olympic Industries PLC.",143.2,3.69,"৳27.61B"],["NTC","National Tea Company Limited",146.4,0.14,"৳4.35B"],["BATBC","British American Tobacco Bangladesh Company Limited",192.1,0.52,"৳103.19B"],["AMCL(PRAN)","Agricultural Marketing Company Limited",208.5,0.19,"৳1.66B"],["GEMINISEA","Gemini Sea Food PLC",96.1,0,"৳1.10B"],["UNILEVERCL","Unilever Consumer Care Limited",1688.2,-0.52,"৳32.71B"],["FINEFOODS","Fine Foods Limited",455.8,-1.6,"৳6.47B"],["APEXFOODS","Apex Foods Limited",324.9,-2.4,"৳1.90B"],["GHAIL","Golden Harvest Agro Industries Limited",12.4,0,"৳2.68B"],["EMERALDOIL","Emerald Oil Industries Limited",27.1,-1.45,"৳2.51B"],["RDFOOD","Rangpur Dairy & Food Products Limited",23.5,-0.42,"৳1.79B"],["RAHIMAFOOD","Rahima Food Corporation Ltd.",76.6,-2.67,"৳1.57B"],["BDTHAIFOOD","BD Thai Food & Beverage Limited",19.5,3.72,"৳1.53B"],["SHYAMPSUG","Shaympur Sugar Mills Ltd.",313.9,6.91,"৳1.47B"],["ZEALBANGLA","Zeal Bangla Sugar Mills Limited",183,1.55,"৳1.08B"],["MEGHNAPET","Meghna PET Industries Limited",83.2,1.34,"৳985.20M"],["BEACHHATCH","Beach Hatchery Limited",23.1,-0.43,"৳960.50M"],["BANGAS","Bangas Limited",122.5,-0.49,"৳938.59M"],["FUWANGFOOD","Fu-Wang Foods Limited",8.2,1.23,"৳897.80M"],["MEGCONMILK","Meghna Condensed Milk Industries Limited",34.4,-1.71,"৳560.00M"]]},
+ {id:"fuel", name:"Fuel & Power", total:23, stocks:[
+   ["JAMUNAOIL","Jamuna Oil Plc.",175.9,0.57,"৳19.31B"],["MJLBD","MJL Bangladesh PLC",87.7,0,"৳27.78B"],["PADMAOIL","Padma Oil PLC.",203.5,0,"৳19.99B"],["SUMITPOWER","Summit Power Limited",16,-0.62,"৳17.19B"],["MPETROLEUM","Meghna Petroleum PLC",224.8,-0.84,"৳24.53B"],["UPGDCL","United Power Generation & Distribution Company Ltd.",109.6,-0.9,"৳64.11B"],["SPCL","Shahjibazar Power Company Limited",70.9,-1.53,"৳13.44B"],["DOREENPWR","Doreen Power Generations and Systems Limited",41.3,-1.67,"৳7.61B"],["POWERGRID","Power Grid Bangladesh PLC.",36.1,-1.9,"৳33.63B"],["TITASGAS","Titas Gas Transmission and Distribution PLC",23.5,-2.08,"৳23.74B"],["DESCO","Dhaka Electricity Supply PLC",25.3,-3.44,"৳10.42B"],["BPPL","Baraka Patenga Power Limited",24.1,-3.98,"৳4.34B"],["LINDEBD","Linde Bangladesh Limited",621.3,-0.11,"৳9.47B"],["KPCL","Khulna Power Company Ltd.",11.2,0,"৳4.45B"],["CVOPRL","CVO Petrochemical Refinery PLC.",135,-1.82,"৳4.16B"],["EASTRNLUB","Eastern Lubricants Blenders PLC.",1462.7,-0.96,"৳3.52B"],["EPGL","Energypac Power Generation PLC",18.2,-1.09,"৳3.50B"],["BARKAPOWER","Baraka Power Limited",10.9,-2.68,"৳2.64B"],["INTRACO","Intraco Refueling Station PLC",26.8,0.37,"৳2.63B"],["AOL","Associated Oxygen Limited",15.5,-1.27,"৳1.72B"],["LRBDL","Lub-rref (Bangladesh) PLC.",11.6,0,"৳1.68B"],["GBBPOWER","GBB Power Limited",13.2,-1.49,"৳1.36B"],["BDWELDING","Bangladesh Welding Electrodes Ltd.",11.9,-1.65,"৳524.53M"]]},
+ {id:"it", name:"IT Sector", total:11, stocks:[
+   ["AGNISYSL","Agni Systems PLC.",28.9,3.21,"৳2.03B"],["DAFODILCOM","Daffodil Computers PLC",161.8,2.34,"৳7.89B"],["BDCOM","BDCOM Online Ltd.",30.2,1.34,"৳1.88B"],["ISNLTD","Information Services Network Limited",41.5,0.97,"৳448.81M"],["ITC","IT Consultants PLC.",44.6,-0.22,"৳5.75B"],["INTECH","Intech Limited",22.9,-0.43,"৳720.39M"],["EGEN","eGeneration PLC.",22.5,-1.32,"৳1.71B"],["ADNTEL","ADN Telecom Limited",55.8,-1.59,"৳3.67B"],["AAMRANET","aamra networks limited",20,-1.96,"৳1.90B"],["GENEXIL","Genex Infosys PLC",32.9,-2.08,"৳4.05B"],["AAMRATECH","aamra technologies limited",16.5,-4.62,"৳1.12B"]]},
+ {id:"insurance", name:"Insurance", total:58, stocks:[
+   ["RELIANCINS","Reliance Insurance PLC.",90.7,0.78,"৳9.46B"],["POPULARLIF","Popular Life Insurance PLC",51,0.59,"৳3.06B"],["DHAKAINS","Dhaka Insurance Limited",42.2,0.48,"৳1.69B"],["SIPLC","Sena Insurance PLC",132.9,-0.15,"৳5.32B"],["CITYGENINS","City Insurance PLC.",136.9,-0.22,"৳9.35B"],["PRAGATIINS","Pragati Insurance PLC.",71.1,0,"৳6.18B"],["NATLIFEINS","National Life Insurance PLC",90.2,-0.66,"৳9.85B"],["DELTALIFE","Delta Life Insurance Company Limited",67.5,-1.03,"৳8.44B"],["PIONEERINS","Pioneer Insurance PLC",62.1,-1.11,"৳6.45B"],["EASTLAND","Eastland Insurance PLC.",26.7,-1.11,"৳2.26B"],["AGRANINS","Agrani Insurance PLC.",35.3,-1.12,"৳1.29B"],["GREENDELT","Green Delta Insurance PLC.",57.9,-1.19,"৳5.87B"],["BNIPLC","Bangladesh National Insurance PLC",150,2.67,"৳6.46B"],["PRAGATILIF","Pragati Life Insurance PLC",146.4,1.46,"৳5.17B"],["SONALILIFE","Sonali Life Insurance PLC",86,0.12,"৳4.08B"],["CRYSTALINS","Crystal Insurance PLC",64.2,-1.38,"৳2.86B"],["PEOPLESINS","Peoples Insurance PLC",60.2,0.17,"৳2.78B"],["ISLAMIINS","Islami Insurance Bangladesh Limited",65.6,-1.35,"৳2.74B"],["UNITEDINS","United Insurance Company Limited",54,-0.37,"৳2.41B"],["SANDHANINS","Sandhani Life Insurance Company Limited",22.3,1.83,"৳2.40B"],["KARNAPHULI","Karnaphuli Insurance PLC",52.7,-0.94,"৳2.39B"],["EASTERNINS","Eastern Insurance PLC.",54.9,0.18,"৳2.36B"],["NITOLINS","Nitol Insurance PLC.",55.3,-0.36,"৳2.34B"],["PARAMOUNT","Paramount Insurance PLC.",57.6,0,"৳2.34B"],["CENTRALINS","Central Insurance PLC.",43.1,-0.23,"৳2.30B"],["REPUBLIC","Republic Insurance PLC",40.1,-2.91,"৳2.26B"],["RUPALIINS","Rupali Insurance Company Limited",27.9,0,"৳2.25B"],["PROVATIINS","Provati Insurance PLC.",55,-0.36,"৳2.23B"],["RUPALILIFE","Rupali Life Insurance PLC",74.5,0.13,"৳2.23B"],["UNIONINS","Union Insurance PLC",43.9,-1.57,"৳2.16B"],["MEGHNALIFE","Meghna Life Insurance PLC",51.7,2.38,"৳2.14B"],["STANDARINS","Standard Insurance PLC.",48.5,-0.21,"৳2.10B"],["BGIC","Bangladesh General Insurance Company PLC.",37.8,-1.56,"৳2.07B"],["ICICL","Islami Commercial Insurance PLC.",37.7,-0.79,"৳1.92B"],["EIL","Express Insurance Limited",29.2,0,"৳1.90B"],["TAKAFULINS","Takaful Islami Insurance PLC",44.1,-0.68,"৳1.89B"],["ASIAPACINS","Asia Pacific General Insurance PLC",43.9,-0.9,"৳1.88B"],["PURABIGEN","Purabi General Insurance Company Limited",31.2,-0.95,"৳1.88B"],["FEDERALINS","Federal Insurance PLC",25.9,-1.15,"৳1.86B"],["PHENIXINS","Phoenix Insurance PLC",46.3,0.65,"৳1.86B"],["ASIAINS","Asia Insurance PLC.",38.7,0.26,"৳1.82B"],["MERCINS","Mercantile Islami Insurance PLC",41.2,-1.2,"৳1.80B"],["PRIMEINSUR","Prime Islami Insurance PLC",43.3,0,"৳1.77B"],["DGIC","Desh General Insurance Company Limited",43.7,-0.68,"৳1.76B"],["SUNLIFEINS","Sunlife Insurance Company Limited",47.2,-1.46,"৳1.71B"],["TILIL","Trust Islami Life Insurance PLC.",43,0.7,"৳1.71B"],["SONARBAINS","Sonar Bangla Insurance Limited",38.1,1.6,"৳1.66B"],["GLOBALINS","Global Insurance PLC",40.3,-0.49,"৳1.64B"],["CLICL","Chartered Life Insurance PLC",44,1.62,"৳1.62B"],["JANATAINS","Janata Insurance PLC",33,-1.2,"৳1.62B"],["NORTHRNINS","Northern Islami Insurance PLC.",35,1.45,"৳1.55B"],["SICL","Sikder Insurance PLC",36.6,1.95,"৳1.44B"],["CONTININS","Continental Insurance PLC.",31.5,0,"৳1.38B"],["MEGHNAINS","Meghna Insurance PLC.",30.7,-0.32,"৳1.23B"],["FAREASTLIF","Fareast Islami Life Insurance Company Limited",16.5,1.85,"৳1.21B"],["PRIMELIFE","Prime Islami Life Insurance Limited",35.3,-0.28,"৳1.08B"],["PROGRESLIF","Progressive Life Insurance Company Limited",34.1,-1.16,"৳574.19M"],["PADMALIFE","Padma Islami Life Insurance Limited",14.9,4.2,"৳555.98M"]]},
+ {id:"jute", name:"Jute", total:3, stocks:[
+   ["NORTHERN","Northern Jute Manufacturing Company Limited",92.5,0.65,"৳196.85M"],["JUTESPINN","Jute Spinners Limited",194.3,0.05,"৳330.14M"],["SONALIANSH","Sonali Aansh Industries Limited",194.3,-1.52,"৳2.14B"]]},
+ {id:"misc", name:"Miscellaneous", total:14, stocks:[
+   ["BEXIMCO","Bangladesh Export Import Company Limited",23.6,5.83,"৳21.03B"],["INDEXAGRO","Index Agro Industries Limited",70,4.95,"৳3.31B"],["NFML","National Feed Mill Limited",15.3,4.79,"৳1.36B"],["ARAMIT","Aramit Limited",173.4,1.52,"৳1.02B"],["USMANIAGL","Usmania Glass Sheet Factory Limited",55.6,0,"৳968.05M"],["GQBALLPEN","GQ Ball Pen Industries Limited",607.1,0.08,"৳5.42B"],["BERGERPBL","Berger Paints Bangladesh Limited",1484.7,-0.03,"৳72.93B"],["MIRACLEIND","Miracle Industries Limited",32.7,-1.51,"৳1.17B"],["SINOBANGLA","Sinobangla Industries Limited",53.2,-1.66,"৳1.64B"],["BSC","Bangladesh Shipping Corporation",112.6,-2.43,"৳17.60B"],["AMANFEED","Aman Feed PLC",32.6,-1.51,"৳4.34B"],["KBPPWBIL","Khan Brothers PP Woven Bag Industries Ltd",31.3,2.96,"৳2.98B"],["SKTRIMS","SK Trims & Industries Ltd.",14.3,-0.69,"৳1.22B"],["HAMI","Hami Industries PLC",129.9,-3.92,"৳1.04B"]]},
+ {id:"paper", name:"Paper & Printing", total:6, stocks:[
+   ["KPPL","Khulna Printing & Packaging Ltd.",11.8,0.85,"৳854.57M"],["MAGURAPLEX","Magura Multiplex PLC.",91.5,0.33,"৳2.70B"],["HAKKANIPUL","Hakkani Pulp & Paper Mills PLC.",66.1,-0.15,"৳1.26B"],["BPML","Bashundhara Paper Mills PLC.",24.6,-0.81,"৳4.31B"],["SONALIPAPR","Sonali Paper & Board Mills Limited",206.3,-1.06,"৳6.87B"],["MONOSPOOL","Monospool Bangladesh PLC",111.5,-1.24,"৳5.09B"]]},
+ {id:"pharma", name:"Pharma & Chemicals", total:34, stocks:[
+   ["SILVAPHL","Silva Pharmaceuticals Limited",13.9,5.3,"৳1.80B"],["ORIONPHARM","Orion Pharma Limited",25.5,1.19,"৳5.90B"],["BXPHARMA","Beximco Pharmaceuticals PLC.",145.8,0.48,"৳64.73B"],["KOHINOOR","Kohinoor Chemical Co. (Bangladesh) PLC.",471.7,0.4,"৳21.55B"],["MARICO","Marico Bangladesh Limited",2639.5,0.12,"৳83.05B"],["RECKITTBEN","Reckitt Benckiser (Bangladesh) PLC",3202.5,-0.17,"৳15.16B"],["SQURPHARMA","Square Pharmaceuticals PLC.",209.2,-0.24,"৳185.89B"],["ACI","Advanced Chemical Industries PLC.",172.5,-0.69,"৳16.02B"],["RENATA","Renata PLC",427.7,-0.56,"৳49.33B"],["IBNSINA","The IBN SINA Pharmaceutical Industry PLC",298.4,-0.5,"৳9.37B"],["BEACONPHAR","Beacon Pharmaceuticals PLC",95.9,-0.72,"৳22.31B"],["ACMELAB","The ACME Laboratories Ltd.",76.6,-0.91,"৳16.36B"],["ASIATICLAB","Asiatic Laboratories Limited",115.3,-1.87,"৳14.38B"],["NAVANAPHAR","Navana Pharmaceuticals PLC",63.8,-2.3,"৳7.01B"],["ACIFORMULA","ACI Formulations PLC",130.8,0.31,"৳6.16B"],["JHRML","JMI Hospital Requisite Manufacturing Limited",40.8,-1.21,"৳5.17B"],["KEYACOSMET","Keya Cosmetics Limited",4.5,0,"৳4.96B"],["TECHNODRUG","Techno Drugs Ltd.",37.1,3.06,"৳4.75B"],["JMISMDL","JMI Syringes & Medical Devices Limited",142.7,0,"৳4.29B"],["ORIONINFU","Orion Infusion Limited",217.4,3.57,"৳4.27B"],["ACMEPL","ACME Pesticides Limited",26,-0.38,"৳3.52B"],["FARCHEM","FAR Chemical & Textile Ind. PLC",18.3,1.67,"৳2.76B"],["WATACHEM","Wata Chemicals Limited",175.5,-1.74,"৳2.65B"],["SALVO","Salvo Organic Industries PLC.",30.9,1.64,"৳1.98B"],["SILCOPHL","Silco Pharmaceuticals Limited",16.4,-0.61,"৳1.71B"],["AMBEEPHA","Ambee Pharmaceuticals PLC",705,0.21,"৳1.69B"],["IBP","Indo-Bangla Pharmaceuticals Limited",14.8,4.23,"৳1.65B"],["PHARMAID","Pharma Aids Limited",484.9,0.12,"৳1.51B"],["GHCL","Global Heavy Chemicals Limited",19.9,-1.49,"৳1.45B"],["ADVENT","Advent Pharma Ltd.",14,-0.71,"৳1.31B"],["LIBRAINFU","Libra Infusions Limited",524,-0.74,"৳1.19B"],["ACTIVEFINE","Active Fine Chemicals Limited",4.7,-4.08,"৳1.18B"],["CENTRALPHL","Central Pharmaceuticals Ltd.",8.6,0,"৳1.03B"],["AFCAGRO","AFC Agro Biotech Limited",6,-6.25,"৳737.38M"]]},
+ {id:"services", name:"Services & Real Estate", total:4, stocks:[
+   ["SAIFPOWER","Saif Powertec Limited",7.3,4.29,"৳2.66B"],["SAMORITA","Samorita Hospital Limited",91.1,0.66,"৳1.97B"],["EHL","Eastern Housing Limited",76,-1.55,"৳7.21B"],["SAPORTL","Summit Alliance Port Limited",59.4,-3.41,"৳14.57B"]]},
+ {id:"tannery", name:"Tannery Industries", total:6, stocks:[
+   ["APEXTANRY","Apex Tannery Limited",81.1,1.5,"৳1.22B"],["BATASHOE","Bata Shoe Company (Bangladesh) Limited",903,0.38,"৳12.31B"],["APEXFOOT","Apex Footwear Limited",166.3,-0.48,"৳3.78B"],["LEGACYFOOT","Legacy Footwear PLC",64.4,0,"৳2.77B"],["FORTUNE","Fortune Shoes Ltd.",13.6,-2.16,"৳2.37B"],["SAMATALETH","Samata Leather Complex Ltd.",106.7,-3.44,"৳1.14B"]]},
+ {id:"telecom", name:"Telecommunication", total:3, stocks:[
+   ["GP","Grameenphone Ltd.",226.8,0.04,"৳306.11B"],["ROBI","Robi Axiata PLC.",30,0,"৳157.14B"],["BSCPLC","Bangladesh Submarine Cables PLC",142,-0.49,"৳26.69B"]]},
+ {id:"travel", name:"Travel & Leisure", total:4, stocks:[
+   ["SEAPEARL","Sea Pearl Beach Resort & Spa Limited",33.8,0.6,"৳4.06B"],["UNIQUEHRL","Unique Hotel & Resorts PLC",39,0.26,"৳11.45B"],["PENINSULA","The Peninsula Chittagong PLC.",20.6,0,"৳2.44B"],["BESTHLDNG","Best Holdings PLC.",15.1,-1.31,"৳16.21B"]]},
+ {id:"bond", name:"Corporate Bond / Sukuk", total:1, stocks:[
+   ["BEXGSUKUK","Beximco Green Sukuk Al Istisna'a",81.5,-1.21,""]]},
+ {id:"textile", name:"Textile", total:57, stocks:[
+   ["SONARGAON","Sonargaon Textiles Limited",154.3,9.82,"৳3.72B"],["HWAWELLTEX","Hwa Well Textiles (BD) PLC",60.5,8.42,"৳3.12B"],["SAIHAMTEX","Saiham Textile Mills PLC.",58.5,4.46,"৳5.07B"],["MALEKSPIN","Malek Spinning Mills PLC.",60.8,3.75,"৳11.34B"],["ACFL","Aman Cotton Fibrous PLC.",28.1,0.72,"৳2.81B"],["DSHGARME","Desh Garments Limited",131.4,0.38,"৳1.08B"],["AIL","Alif Industries Limited",26.9,0,"৳1.31B"],["PTL","Paramount Textile PLC.",77.7,-0.13,"৳13.94B"],["SQUARETEXT","Square Textiles PLC.",56.1,-0.53,"৳11.13B"],["MATINSPINN","Matin Spinning Mills PLC",130.3,-1.06,"৳12.84B"],["SIMTEX","Simtex Industries PLC.",26.2,-1.5,"৳2.12B"],["ENVOYTEX","Envoy Textiles Limited",83.2,-2.46,"৳14.31B"],["FEKDIL","Far East Knitting & Dyeing Industries Plc.",25.2,4.56,"৳5.27B"],["SHARPIND","Sharp Industries PLC",13.5,0.75,"৳4.07B"],["SHASHADNIM","Shasha Denims PLC.",27.6,0,"৳3.89B"],["TAMIJTEX","Tamijuddin Textile Mills PLC",106.4,-3.36,"৳3.64B"],["SAIHAMCOT","Saiham Cotton Mills Ltd.",23.1,-1.28,"৳3.48B"],["APEXSPINN","Apex Spinning & Knitting Mills Limited",420,2.44,"৳3.44B"],["ARGONDENIM","Argon Denims Limited",22.6,-3.0,"৳3.24B"],["ESQUIRENIT","Esquire Knit Composite PLC",22.6,0.44,"৳3.04B"],["MLDYEING","M.L. Dyeing & Textile Ind. PLC",12.5,3.31,"৳2.81B"],["ETL","Evince Textiles Limited",14.3,0.7,"৳2.60B"],["QUEENSOUTH","Queen South Textile Mills Limited",14.4,0,"৳2.20B"],["DSSL","Dragon Sweater & Spinning Limited",10.2,-0.97,"৳2.17B"],["MONNOFABR","Monno Fabrics Limited",18.7,0,"৳2.15B"],["MHSML","Mozaffar Hossain Spinning Mills Limited",18.2,-1.62,"৳1.87B"],["SHEPHERD","Shepherd Industries PLC",12.2,1.67,"৳1.85B"],["RAHIMTEXT","Rahim Textile Mills PLC.",181.6,-2.05,"৳1.75B"],["RINGSHINE","Ring Shine Textiles Limited",3.4,3.03,"৳1.65B"],["ALLTEX","Alltex Industries Limited",28.5,2.15,"৳1.56B"],["DULAMIACOT","Dulamia Cotton Spinning Mills Limited",202.7,1.2,"৳1.51B"],["KTL","Kattali Textile Limited",13,2.36,"৳1.48B"],["TOSRIFA","Tosrifa Industries PLC",21.5,2.38,"৳1.43B"],["VFSTDL","VFS Thread Dyeing Limited",13.5,4.65,"৳1.36B"],["DACCADYE","The Dacca Dyeing & Manufacturing Company Limited",14.6,0.69,"৳1.26B"],["GENNEXT","Generation Next Fashions Limited",2.4,-4.0,"৳1.24B"],["ALIF","Alif Manufacturing Company Ltd.",4.4,0,"৳1.14B"],["MAKSONSPIN","Maksons Spinning Mills PLC.",4.6,-2.13,"৳1.12B"],["DELTASPINN","Delta Spinners Limited",6.8,3.03,"৳1.10B"],["HFL","Hamid Fabrics PLC",9.9,0,"৳901.47M"],["PDL","Pacific Denims Limited",5,2.04,"৳899.40M"],["SAFKOSPINN","Safko Spinning Mills Limited",24.6,-1.6,"৳749.54M"],["FAMILYTEX","Familytex (BD) Limited",2,0,"৳708.32M"],["ZAHINTEX","Zahintex Industries Ltd.",8.7,1.16,"৳703.73M"],["REGENTTEX","Regent Textile Mills Limited",5.3,0,"৳681.64M"],["STYLECRAFT","Stylecraft Limited",47.1,-0.84,"৳659.53M"],["PRIMETEX","Prime Textile Spinning Mills Limited",15.9,-2.45,"৳622.66M"],["CNATEX","C & A Textiles Limited",2.4,0,"৳574.36M"],["METROSPIN","Metro Spinning Limited",9.4,1.08,"৳573.79M"],["ANLIMAYARN","Anlima Yarn Dyeing Limited",30.1,0.33,"৳536.03M"],["ZAHEENSPIN","Zaheen Spinning PLC.",4.8,2.13,"৳534.99M"],["TUNGHAI","Tung Hai Knitting and Dyeing Limited",5,0,"৳533.27M"],["TALLUSPIN","Toyo Spinning Mills Limited",6.1,3.39,"৳527.08M"],["HRTEX","H.R. Textile Mills Limited",17.8,-0.56,"৳523.06M"],["MITHUNKNIT","Toyo Knitex (CEPZ) Limited",13.1,0.77,"৳422.39M"],["NEWLINE","New Line Clothings Limited",4.5,-2.17,"৳361.25M"],["NURANI","Nurani Dyeing & Sweater Limited",2.6,0,"৳318.83M"]]},
+ {id:"mf", name:"Mutual Funds", total:12, stocks:[
+   ["VAMLRBBF","Vanguard AML Rupali Bank Balanced Fund",8.5,0,""],["FBFIF","First Bangladesh Fixed Income Fund",3.1,3.33,""],["1STPRIMFMF","Prime Finance First Mutual Fund",42.7,2.64,""],["EBL1STMF","EBL First Mutual Fund",4,2.56,""],["1JANATAMF","First Janata Bank Mutual Fund",3.2,0,""],["ABB1STMF","AB Bank 1st Mutual Fund",3.2,0,""],["DBH1STMF","DBH First Mutual Fund",4.9,0,""],["POPULAR1MF","Popular Life First Mutual Fund",3.2,0,""],["CAPMIBBLMF","CAPM IBBL Islamic Mutual Fund",12.5,-1.57,""],["GRAMEENS2","Grameen One : Scheme Two",11.5,-2.54,""],["IFIC1STMF","IFIC Bank 1st Mutual Fund",3.4,-2.86,""],["TRUSTB1MF","Trust Bank 1st Mutual Fund",3.1,-6.06,""]]},
+];
+var main = document.getElementById('main');
+var q = document.getElementById('q');
+var current = null;
+
+function fmt(n){ return n.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function cls(v){ return v>0 ? 'up' : (v<0 ? 'dn' : 'fl'); }
+function arrow(v){ return v>0 ? '▲' : (v<0 ? '▼' : '—'); }
+function pctTxt(v){ return (v>0?'+':v<0?'−':'') + Math.abs(v).toFixed(2) + '%'; }
+
+function stats(s){
+  var up=0, flat=0, down=0, sum=0;
+  s.stocks.forEach(function(st){
+    var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
+    sum+=v; if(v>0)up++; else if(v<0)down++; else flat++;
+  });
+  var total = s.stocks.length;
+  return {up:up, flat:flat, down:down, n:total, total:total, avg: total ? sum/total : 0};
+}
+
+var GLOBAL_MKT = '<div class="cell glass"><div class="lab">DSEX</div><div class="val">5,557.18</div><div class="chg dn">▼ 8.41 (−0.15%)</div></div>'
+ + '<div class="cell glass"><div class="lab">DS30</div><div class="val">2,098.20</div><div class="chg dn">▼ 2.05 (−0.10%)</div></div>'
+ + '<div class="cell glass"><div class="lab">DSES</div><div class="val">1,076.36</div><div class="chg up">▲ 0.84 (+0.08%)</div></div>'
+ + '<div class="cell glass"><div class="lab">Turnover</div><div class="val">৳920.8 cr</div><div class="chg dn">▼ 24.5% vs prev. day</div></div>'
+ + '<div class="cell glass"><div class="lab">Market Cap</div><div class="val">৳6.75 lakh cr</div><div class="chg dn">▼ ৳640 cr on the day</div></div>';
+
+function capB(str){
+  if (!str) return 0;
+  var t = str.replace('৳','').replace(/,/g,'').trim();
+  var n = parseFloat(t);
+  if (isNaN(n)) return 0;
+  if (t.indexOf('B') > -1) return n;
+  if (t.indexOf('M') > -1) return n/1000;
+  return n;
+}
+function sectorCap(s){ var tot=0; s.stocks.forEach(function(st){ tot += capB(st[4]); }); return tot; }
+function fmtCapB(b){
+  if (!b || b<=0) return '—';
+  if (b>=1000) return '৳' + (b/1000).toFixed(2) + ' lakh cr';
+  if (b>=1) return '৳' + b.toFixed(2) + 'B';
+  return '৳' + (b*1000).toFixed(2) + 'M';
+}
+function bestWorst(s){
+  var best=null, worst=null, bv=-Infinity, wv=Infinity;
+  s.stocks.forEach(function(st){
+    var v = (st[3]===null || st[3]===undefined) ? 0 : st[3];
+    if (v>bv){ bv=v; best=st; }
+    if (v<wv){ wv=v; worst=st; }
+  });
+  return {best:best, worst:worst};
+}
+function perfCell(lab, st){
+  var v = (st[3]===null || st[3]===undefined) ? 0 : st[3];
+  return '<div class="cell glass"><div class="lab">' + lab + '</div>'
+    + '<div class="val">' + st[0] + '</div>'
+    + '<div class="co">' + st[1] + '</div>'
+    + '<div class="chg ' + cls(v) + '">' + arrow(v) + ' ' + pctTxt(v) + ' · ৳' + fmt(st[2]) + '</div></div>';
+}
+function setGlobalHeader(){
+  document.getElementById('mainTitle').textContent = 'Sector Performance';
+  document.getElementById('mainSub').innerHTML = 'Monday, 23 November 2026 · <b id="higherCount"></b>';
+  var higher = SECTORS.filter(function(s){ return stats(s).avg > 0; }).length;
+  document.getElementById('higherCount').textContent = higher + ' of 20 sectors closed higher';
+  document.getElementById('breadthNums').innerHTML = '<span><b class="b-up">117</b>advanced</span><span><b class="b-fl">75</b>unchanged</span><span><b class="b-dn">186</b>declined</span>';
+  document.getElementById('breadthBar').innerHTML = '<i class="u" style="width:31%"></i><i class="f" style="width:19.8%"></i><i class="d" style="width:49.2%"></i>';
+  var mg = document.getElementById('mktGrid');
+  mg.innerHTML = GLOBAL_MKT;
+  mg.setAttribute('aria-label','Market snapshot, 23 November 2026');
+}
+function setSectorHeader(s, st){
+  document.getElementById('mainTitle').textContent = s.name;
+  document.getElementById('mainSub').innerHTML = 'Monday, 23 November 2026 · <b>' + st.total + ' STOCKS</b> · গড় পরিবর্তন <span class="' + cls(st.avg) + '" style="font-weight:700">' + arrow(st.avg) + ' ' + Math.abs(st.avg).toFixed(2) + '%</span>';
+  document.getElementById('breadthNums').innerHTML = '<span><b class="b-up">' + st.up + '</b>up</span><span><b class="b-gr">' + st.flat + '</b>flat</span><span><b class="b-dn">' + st.down + '</b>down</span>';
+  var tot = Math.max(st.total, 1);
+  var wu = (st.up/tot*100).toFixed(1), wf = (st.flat/tot*100).toFixed(1), wd = (100 - st.up/tot*100 - st.flat/tot*100).toFixed(1);
+  document.getElementById('breadthBar').innerHTML = '<i class="u" style="width:'+wu+'%"></i><i class="f" style="width:'+wf+'%"></i><i class="d" style="width:'+wd+'%"></i>';
+  var bw = bestWorst(s);
+  var mg = document.getElementById('mktGrid');
+  mg.innerHTML = perfCell('Best Performer', bw.best)
+    + perfCell('Worst Performer', bw.worst)
+    + '<div class="cell glass"><div class="lab">Sector Market Cap</div><div class="val">' + fmtCapB(sectorCap(s)) + '</div><div class="chg fl">' + st.total + ' STOCKS</div></div>';
+  mg.setAttribute('aria-label', s.name + ' sector summary, 23 November 2026');
+}
+
+function moverRowHtml(item, idx){
+  var st = item.st;
+  var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
+  return '<button type="button" class="mrow" data-sector="' + item.sectorId + '" aria-label="' + st[0] + ' — ' + item.sector + ' সেক্টর দেখুন">'
+    + '<span class="rank">' + (idx+1) + '</span>'
+    + '<span class="minfo"><span class="msym">' + st[0] + '</span><span class="mco" style="display:block">' + st[1] + ' · ' + item.sector + '</span></span>'
+    + '<span class="mright"><span class="mprice" style="display:block">৳' + fmt(st[2]) + '</span><span class="mpct ' + cls(v) + '">' + arrow(v) + ' ' + pctTxt(v) + '</span></span>'
+    + '</button>';
+}
+function moversHtml(){
+  var flat = [];
+  SECTORS.forEach(function(s){
+    s.stocks.forEach(function(st){ flat.push({st:st, sector:s.name, sectorId:s.id}); });
+  });
+  flat.sort(function(a,b){
+    var av = (a.st[3]===null||a.st[3]===undefined)?0:a.st[3];
+    var bv = (b.st[3]===null||b.st[3]===undefined)?0:b.st[3];
+    return bv - av;
+  });
+  var gainers = flat.slice(0,10);
+  var losers = flat.slice(-10).slice().reverse();
+  var gRows = '', lRows = '';
+  gainers.forEach(function(it,i){ gRows += moverRowHtml(it,i); });
+  losers.forEach(function(it,i){ lRows += moverRowHtml(it,i); });
+  return '<section class="movers" aria-label="Top gainers and losers">'
+    + '<div class="movers-grid">'
+    + '<div class="mover-box glass gain"><div class="mover-box-hd"><span class="dot2" aria-hidden="true"></span><h3>Top 10 Gainers</h3><span class="cnt">▲ Top 10</span></div><div>' + gRows + '</div></div>'
+    + '<div class="mover-box glass lose"><div class="mover-box-hd"><span class="dot2" aria-hidden="true"></span><h3>Top 10 Losers</h3><span class="cnt">▼ Top 10</span></div><div>' + lRows + '</div></div>'
+    + '</div></section>';
+}
+
+function renderGrid(){
+  current = null;
+  setGlobalHeader();
+  var sorted = SECTORS.slice().sort(function(a,b){ return stats(b).avg - stats(a).avg; });
+  var higher = sorted.filter(function(s){ return stats(s).avg > 0; }).length;
+  var hc = document.getElementById('higherCount');
+  if (hc) hc.textContent = higher + " of 20 sectors closed higher";
+  var html = '<div class="grid">';
+  sorted.forEach(function(s){
+    var st = stats(s);
+    var tot = Math.max(st.total, 1);
+    var wu = (st.up/tot*100).toFixed(1), wf = (st.flat/tot*100).toFixed(1), wd = (100 - st.up/tot*100 - st.flat/tot*100).toFixed(1);
+    var pos = st.avg >= 0;
+    html += '<button class="scard ' + (pos?'g':'r') + '" data-id="' + s.id + '" aria-label="' + s.name + ' sector details">'
+      + '<span class="go" aria-hidden="true">›</span>'
+      + '<div class="name">' + s.name + '</div>'
+      + '<div class="pct">' + (pos?'▲ ':'▼ ') + Math.abs(st.avg).toFixed(2) + '<small>%</small></div>'
+      + '<div class="mini"><i style="width:'+wu+'%;background:var(--green)"></i><i style="width:'+wf+'%;background:#5b6a8c"></i><i style="width:'+wd+'%;background:var(--red)"></i></div>'
+      + '<div class="counts"><span class="cu">' + st.up + ' up</span><span>' + st.flat + ' flat</span><span class="cd">' + st.down + ' down</span></div>'
+      + '<div class="n">' + st.total + ' STOCKS</div>'
+      + '</button>';
+  });
+  html += '</div>';
+  html += moversHtml();
+  main.innerHTML = html;
+  var cards = main.querySelectorAll('.scard');
+  for (var i=0;i<cards.length;i++){
+    cards[i].addEventListener('click', function(){ openSector(this.getAttribute('data-id')); });
+  }
+  var mrows = main.querySelectorAll('.mrow');
+  for (var j=0;j<mrows.length;j++){
+    mrows[j].addEventListener('click', function(){ openSector(this.getAttribute('data-sector')); });
+  }
+}
+
+function renderTable(rowsHtml, emptyMsg){
+  if (!rowsHtml) return '<div class="tablewrap glass"><div class="empty">' + emptyMsg + '</div></div>';
+  return '<div class="tablewrap glass"><table><thead><tr><th>Stock</th><th>Price</th><th>Change</th><th>Market Cap</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
+}
+
+function rowsFor(stocks, sectorName){
+  var html = '';
+  stocks.forEach(function(st){
+    var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
+    var chgCell = '<td class="' + cls(v) + '" style="font-weight:700">' + arrow(v) + ' ' + pctTxt(v) + '</td>';
+    html += '<tr><td><span class="sym">' + st[0] + '</span><div class="cname">' + st[1] + (sectorName ? ' · ' + sectorName : '') + '</div></td>'
+      + '<td class="price">৳' + fmt(st[2]) + '</td>'
+      + chgCell
+      + '<td>' + (st[4] ? st[4] : '<span style="color:var(--muted2)">—</span>') + '</td></tr>';
+  });
+  return html;
+}
+
+function openSector(id, noScroll){
+  var s = null;
+  SECTORS.forEach(function(x){ if (x.id===id) s = x; });
+  if (!s) return;
+  current = id;
+  q.value = '';
+  var st = stats(s);
+  setSectorHeader(s, st);
+  main.innerHTML = '<div class="panel">'
+    + '<button class="backbtn glass" id="back">‹ সব সেক্টর</button>'
+    + '<div style="margin-top:14px">'
+    + renderTable(rowsFor(s.stocks, null), 'কোনো স্টক পাওয়া যায়নি')
+    + '</div></div>';
+  document.getElementById('back').addEventListener('click', renderGrid);
+  if (!noScroll) window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function doSearch(){
+  var v = q.value.trim().toLowerCase();
+  if (!v){ renderGrid(); return; }
+  setGlobalHeader();
+  var hits = [];
+  SECTORS.forEach(function(s){
+    s.stocks.forEach(function(st){
+      if (st[0].toLowerCase().indexOf(v) > -1 || st[1].toLowerCase().indexOf(v) > -1) hits.push([st, s.name]);
+    });
+  });
+  var html = '<div class="panel"><button class="backbtn glass" id="back2">‹ সব সেক্টর</button>'
+    + '<div class="phead"><h2>“' + q.value.trim().replace(/</g,'&lt;') + '” — ' + hits.length + 'টি স্টক মিলেছে</h2></div>';
+  var rows = '';
+  hits.forEach(function(h){ rows += rowsFor([h[0]], h[1]); });
+  html += renderTable(rows, 'কোনো স্টক মেলেনি — অন্য নাম বা symbol দিয়ে চেষ্টা করুন') + '</div>';
+  main.innerHTML = html;
+  document.getElementById('back2').addEventListener('click', function(){ q.value=''; renderGrid(); });
+}
+
+var t;
+q.addEventListener('input', function(){ clearTimeout(t); t = setTimeout(doSearch, 160); });
+renderGrid();
+</script>
+<script>
+/* ===== Live DSE sync — every 60s during trading (Sun–Thu, 10:00–14:30 Asia/Dhaka) ===== */
+(function(){
+  var PRICES_URL = '/api/live-prices';
+  var MARKET_URL = '/api/live-market';
+  var dot = document.getElementById('liveDot');
+  var stEl = document.getElementById('liveStatus');
+  var metaEl = document.getElementById('liveMeta');
+  var cntEl = document.getElementById('liveCount');
+  var btn = document.getElementById('liveBtn');
+  var foot = document.getElementById('footSrc');
+  var lastOk = null;        // Date of last successful DSE sync
+  var lastOkTxt = '';
+  var nextAt = 0;           // ms epoch of next scheduled auto fetch
+  var fetching = false;
+  var sharesCache = {};     // symbol -> implied shares outstanding (from baked cap/price)
+
+  function dhakaNow(){
+    try { return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Dhaka'})); }
+    catch(e){ return new Date(); }
+  }
+  function isTrading(d){
+    var day = d.getDay(); // 0=Sun .. 4=Thu in Dhaka
+    if (day > 4) return false; // Fri(5), Sat(6) closed
+    var mins = d.getHours()*60 + d.getMinutes();
+    return mins >= 600 && mins < 870; // 10:00–14:30
+  }
+  function pad(n){ return (n<10?'0':'')+n; }
+  function clockTxt(d){ return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
+  function dateLine(iso){
+    try {
+      var d = new Date(iso + 'T12:00:00');
+      return d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    } catch(e){ return ''; }
+  }
+  function fetchWithTimeout(url, ms){
+    return new Promise(function(resolve, reject){
+      var ctrl = ('AbortController' in window) ? new AbortController() : null;
+      var timer = setTimeout(function(){ if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, ms);
+      fetch(url, {cache:'no-store', signal: ctrl ? ctrl.signal : undefined})
+        .then(function(r){ clearTimeout(timer); if (!r.ok) throw new Error('http '+r.status); return r.json(); })
+        .then(resolve, reject);
+    });
+  }
+  function fetchJson(url, valid){
+    return fetchWithTimeout(url, 10000).then(function(j){
+      if (!valid(j)) throw new Error('bad shape');
+      return j;
+    });
+  }
+  function num(v){ var n = Number(v); return isFinite(n) ? n : 0; }
+  function impliedShares(sym, capStr, price){
+    if (sharesCache[sym]) return sharesCache[sym];
+    var b = capB(capStr);
+    if (!b || !price) return 0;
+    sharesCache[sym] = b * 1e9 / price;
+    return sharesCache[sym];
+  }
+  function applyPrices(j){
+    var ci = {}; j.cols.forEach(function(c, i){ ci[c] = i; });
+    var map = {};
+    j.rows.forEach(function(r){ map[r[ci.code]] = r; });
+    var hit = 0;
+    SECTORS.forEach(function(s){
+      s.stocks.forEach(function(st){
+        var r = map[st[0]];
+        if (!r) return;
+        hit++;
+        var ltp = num(r[ci.ltp]), close = num(r[ci.close]);
+        var pctRaw = r[ci.percent];
+        var price = (ltp > 0) ? ltp : close;
+        var sh = impliedShares(st[0], st[4], st[2]);
+        st[2] = price;
+        st[3] = (pctRaw === null || pctRaw === undefined) ? 0 : Math.round(num(pctRaw)*100)/100;
+        if (sh) st[4] = fmtCapB(sh * price / 1e9);
+      });
+    });
+    return hit;
+  }
+  function idxCell(lab, ix){
+    var v = num(ix.percent), val = num(ix.value), chg = num(ix.change);
+    return '<div class="cell glass"><div class="lab">' + lab + '</div><div class="val">' + fmt(val) + '</div>'
+      + '<div class="chg ' + cls(v) + '">' + arrow(v) + ' ' + fmt(Math.abs(chg)) + ' (' + (v>0?'+':v<0?'−':'') + Math.abs(v).toFixed(2) + '%)</div></div>';
+  }
+  function applyMarketHeader(j){
+    if (current !== null || q.value.trim()) return; // sector/search view keeps its own header
+    var idx = {}; j.indices.forEach(function(x){ idx[x.key] = x; });
+    var t = j.totals, b = j.breadth;
+    var turnoverCr = num(t.turnover) / 10;
+    var mcapLakhCr = num(t.marketCap) / 1e12;
+    var adv = num(b.advanced), unc = num(b.unchanged), dec = num(b.declined);
+    var ttm = String(t.tradeTime || '').match(/(\d{1,2}:\d{2}\s?(?:AM|PM))/i);
+    var tradeTimeTxt = ttm ? ttm[1].toUpperCase() : '';
+    document.getElementById('mktGrid').innerHTML =
+        idxCell('DSEX', idx.DSEX) + idxCell('DS30', idx.DS30) + idxCell('DSES', idx.DSES)
+      + '<div class="cell glass"><div class="lab">Turnover</div><div class="val">৳' + turnoverCr.toFixed(1) + ' cr</div><div class="chg fl">' + num(t.trades).toLocaleString('en-US') + ' trades</div></div>'
+      + '<div class="cell glass"><div class="lab">Market Cap</div><div class="val">৳' + mcapLakhCr.toFixed(2) + ' lakh cr</div><div class="chg fl">' + (tradeTimeTxt ? 'Last trade ' + tradeTimeTxt : '—') + '</div></div>';
+    var tot = Math.max(adv + unc + dec, 1);
+    document.getElementById('breadthNums').innerHTML =
+        '<span><b class="b-up">' + adv + '</b>advanced</span>'
+      + '<span><b class="b-fl">' + unc + '</b>unchanged</span>'
+      + '<span><b class="b-dn">' + dec + '</b>declined</span>';
+    document.getElementById('breadthBar').innerHTML =
+        '<i class="u" style="width:' + (adv/tot*100).toFixed(1) + '%"></i>'
+      + '<i class="f" style="width:' + (unc/tot*100).toFixed(1) + '%"></i>'
+      + '<i class="d" style="width:' + (dec/tot*100).toFixed(1) + '%"></i>';
+    var higher = SECTORS.filter(function(s){ return stats(s).avg > 0; }).length;
+    var dl = j.session && j.session.date ? dateLine(j.session.date) : '';
+    if (dl) document.getElementById('mainSub').innerHTML = dl + ' · <b>' + higher + ' of 20 sectors closed higher</b>';
+    if (foot) foot.textContent = 'Source: DSE live · Last trade ' + String(t.tradeTime || '');
+  }
+  function refreshView(){
+    var y = window.scrollY || 0;
+    if (q.value.trim()) doSearch();
+    else if (current !== null) openSector(current, true);
+    else renderGrid();
+    window.scrollTo(0, y);
+  }
+  function setStatus(){
+    var d = dhakaNow();
+    var trading = isTrading(d);
+    if (fetching){
+      stEl.textContent = 'আপডেট হচ্ছে…';
+      return;
+    }
+    if (trading && lastOk){
+      dot.className = 'dot on';
+      stEl.textContent = 'LIVE · DSE লাইভ';
+      metaEl.textContent = 'সর্বশেষ আপডেট ' + lastOkTxt + ' (ঢাকা)';
+    } else if (trading && !lastOk){
+      dot.className = 'dot err';
+      stEl.textContent = 'লাইভ সংযোগ ব্যর্থ';
+      metaEl.textContent = 'সর্বশেষ সিঙ্ক করা ডেটা দেখানো হচ্ছে';
+    } else if (lastOk){
+      dot.className = 'dot';
+      stEl.textContent = 'বাজার বন্ধ';
+      metaEl.textContent = 'সর্বশেষ আপডেট ' + lastOkTxt + ' · ট্রেডিং: রবি–বৃহ ১০:০০–২:৩০';
+    } else {
+      dot.className = 'dot';
+      stEl.textContent = 'বাজার বন্ধ';
+      metaEl.textContent = 'স্ন্যাপশট · 23 Nov 2026 · ট্রেডিং: রবি–বৃহ ১০:০০–২:৩০';
+    }
+    if (trading && nextAt){
+      var s = Math.max(0, Math.round((nextAt - Date.now())/1000));
+      cntEl.textContent = 'পরবর্তী আপডেট ' + s + 's';
+    } else {
+      cntEl.textContent = '';
+    }
+  }
+  function fetchNow(){
+    if (fetching) return Promise.resolve(false);
+    fetching = true; btn.disabled = true; setStatus();
+    var pOk = fetchJson(PRICES_URL, function(j){ return j && j.cols && j.rows; });
+    var mOk = fetchJson(MARKET_URL, function(j){ return j && j.indices && j.totals; });
+    return Promise.all([pOk, mOk]).then(function(res){
+      var hit = applyPrices(res[0]);
+      refreshView();
+      applyMarketHeader(res[1]);
+      lastOk = new Date(); lastOkTxt = clockTxt(dhakaNow());
+      fetching = false; btn.disabled = false;
+      nextAt = Date.now() + 60000;
+      setStatus();
+      return hit > 0;
+    }).catch(function(){
+      fetching = false; btn.disabled = false;
+      nextAt = Date.now() + 60000;
+      setStatus();
+      return false;
+    });
+  }
+  btn.addEventListener('click', function(){ fetchNow(); });
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden && isTrading(dhakaNow()) && (!lastOk || Date.now() - lastOk.getTime() > 60000)) fetchNow();
+  });
+  setInterval(function(){
+    setStatus();
+    if (!document.hidden && isTrading(dhakaNow()) && nextAt && Date.now() >= nextAt && !fetching) fetchNow();
+  }, 1000);
+  nextAt = Date.now() + 60000;
+  fetchNow(); // sync once on open — afterwards every 60s only while the market is open
+  setStatus();
+})();
+</script>
+</body>
+</html>
