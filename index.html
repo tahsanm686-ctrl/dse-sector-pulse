@@ -297,6 +297,7 @@ function stats(s){
   return {up:up, flat:flat, down:down, n:total, total:total, avg: total ? sum/total : 0};
 }
 
+var SESSION_DATE = 'Monday, 23 November 2026'; /* snapshot session date — replaced by the live DSE session date on the first successful sync */
 var GLOBAL_MKT = '<div class="cell glass"><div class="lab">DSEX</div><div class="val">5,557.18</div><div class="chg dn">▼ 8.41 (−0.15%)</div></div>'
  + '<div class="cell glass"><div class="lab">DS30</div><div class="val">2,098.20</div><div class="chg dn">▼ 2.05 (−0.10%)</div></div>'
  + '<div class="cell glass"><div class="lab">DSES</div><div class="val">1,076.36</div><div class="chg up">▲ 0.84 (+0.08%)</div></div>'
@@ -337,28 +338,35 @@ function perfCell(lab, st){
 }
 function setGlobalHeader(){
   document.getElementById('mainTitle').textContent = 'Sector Performance';
-  document.getElementById('mainSub').innerHTML = 'Monday, 23 November 2026 · <b id="higherCount"></b>';
+  document.getElementById('mainSub').innerHTML = SESSION_DATE + ' · <b id="higherCount"></b>';
   var higher = SECTORS.filter(function(s){ return stats(s).avg > 0; }).length;
   document.getElementById('higherCount').textContent = higher + ' of 20 sectors closed higher';
   document.getElementById('breadthNums').innerHTML = '<span><b class="b-up">117</b>advanced</span><span><b class="b-fl">75</b>unchanged</span><span><b class="b-dn">186</b>declined</span>';
   document.getElementById('breadthBar').innerHTML = '<i class="u" style="width:31%"></i><i class="f" style="width:19.8%"></i><i class="d" style="width:49.2%"></i>';
   var mg = document.getElementById('mktGrid');
   mg.innerHTML = GLOBAL_MKT;
-  mg.setAttribute('aria-label','Market snapshot, 23 November 2026');
+  mg.setAttribute('aria-label','Market snapshot, ' + SESSION_DATE);
+  /* The values above are the baked 23 Nov snapshot, shown only until the
+     first live sync. If live market data has already arrived this session,
+     re-apply it now — a re-render (back button, search) must never leave
+     the stale snapshot numbers in the header. */
+  if (window.__dseLiveHeader) window.__dseLiveHeader();
 }
 function setSectorHeader(s, st){
   document.getElementById('mainTitle').textContent = s.name;
-  document.getElementById('mainSub').innerHTML = 'Monday, 23 November 2026 · <b>' + st.total + ' STOCKS</b> · গড় পরিবর্তন <span class="' + cls(st.avg) + '" style="font-weight:700">' + arrow(st.avg) + ' ' + Math.abs(st.avg).toFixed(2) + '%</span> · স্টকগুলো % পরিবর্তন অনুযায়ী উপর থেকে নিচে সাজানো';
-  document.getElementById('breadthNums').innerHTML = '<span><b class="b-up">' + st.up + '</b>up</span><span><b class="b-gr">' + st.flat + '</b>flat</span><span><b class="b-dn">' + st.down + '</b>down</span>';
-  var tot = Math.max(st.total, 1);
-  var wu = (st.up/tot*100).toFixed(1), wf = (st.flat/tot*100).toFixed(1), wd = (100 - st.up/tot*100 - st.flat/tot*100).toFixed(1);
-  document.getElementById('breadthBar').innerHTML = '<i class="u" style="width:'+wu+'%"></i><i class="f" style="width:'+wf+'%"></i><i class="d" style="width:'+wd+'%"></i>';
+  document.getElementById('mainSub').innerHTML = SESSION_DATE + ' · <b>' + st.total + ' STOCKS</b> · <span class="b-up">' + st.up + ' up</span> · <span class="b-gr">' + st.flat + ' flat</span> · <span class="b-dn">' + st.down + ' down</span> · গড় পরিবর্তন <span class="' + cls(st.avg) + '" style="font-weight:700">' + arrow(st.avg) + ' ' + Math.abs(st.avg).toFixed(2) + '%</span> · স্টকগুলো % পরিবর্তন অনুযায়ী উপর থেকে নিচে সাজানো';
+  /* The top breadth bar is the WHOLE-market breadth, not this sector's:
+     it is deliberately left untouched here (the sector's own up/flat/down
+     counts are in the sub-line above) and re-asserted from the last live
+     market payload, so entering a sector never swaps today's live market
+     breadth for other numbers. */
   var bw = bestWorst(s);
   var mg = document.getElementById('mktGrid');
   mg.innerHTML = perfCell('Best Performer', bw.best)
     + perfCell('Worst Performer', bw.worst)
     + '<div class="cell glass"><div class="lab">Sector Market Cap</div><div class="val">' + fmtCapB(sectorCap(s)) + '</div><div class="chg fl">' + st.total + ' STOCKS</div></div>';
-  mg.setAttribute('aria-label', s.name + ' sector summary, 23 November 2026');
+  mg.setAttribute('aria-label', s.name + ' sector summary, ' + SESSION_DATE);
+  if (window.__dseLiveHeader) window.__dseLiveHeader();
 }
 
 function moverRowHtml(item, idx){
@@ -764,7 +772,6 @@ renderGrid();
       + '<div class="chg ' + cls(v) + '">' + arrow(v) + ' ' + fmt(Math.abs(chg)) + ' (' + (v>0?'+':v<0?'−':'') + Math.abs(v).toFixed(2) + '%)</div></div>';
   }
   function applyMarketHeader(j){
-    if (detailSym !== null || current !== null || q.value.trim()) return; // detail/sector/search view keeps its own header
     var idx = {}; j.indices.forEach(function(x){ idx[x.key] = x; });
     var t = j.totals, b = j.breadth;
     var turnoverCr = num(t.turnover) / 10;
@@ -772,10 +779,12 @@ renderGrid();
     var adv = num(b.advanced), unc = num(b.unchanged), dec = num(b.declined);
     var ttm = String(t.tradeTime || '').match(/(\d{1,2}:\d{2}\s?(?:AM|PM))/i);
     var tradeTimeTxt = ttm ? ttm[1].toUpperCase() : '';
-    document.getElementById('mktGrid').innerHTML =
-        idxCell('DSEX', idx.DSEX) + idxCell('DS30', idx.DS30) + idxCell('DSES', idx.DSES)
-      + '<div class="cell glass"><div class="lab">Turnover</div><div class="val">৳' + turnoverCr.toFixed(1) + ' cr</div><div class="chg fl">' + num(t.trades).toLocaleString('en-US') + ' trades</div></div>'
-      + '<div class="cell glass"><div class="lab">Market Cap</div><div class="val">৳' + mcapLakhCr.toFixed(2) + ' lakh cr</div><div class="chg fl">' + (tradeTimeTxt ? 'Last trade ' + tradeTimeTxt : '—') + '</div></div>';
+    var dl = j.session && j.session.date ? dateLine(j.session.date) : '';
+    if (dl) SESSION_DATE = dl; // later renders label themselves with the live session date
+    /* Market breadth is whole-market data: today's live advanced /
+       unchanged / declined counts belong in the top bar in EVERY view —
+       home, sector, search and stock detail alike — so this part is
+       applied unconditionally. */
     var tot = Math.max(adv + unc + dec, 1);
     document.getElementById('breadthNums').innerHTML =
         '<span><b class="b-up">' + adv + '</b>advanced</span>'
@@ -785,11 +794,26 @@ renderGrid();
         '<i class="u" style="width:' + (adv/tot*100).toFixed(1) + '%"></i>'
       + '<i class="f" style="width:' + (unc/tot*100).toFixed(1) + '%"></i>'
       + '<i class="d" style="width:' + (dec/tot*100).toFixed(1) + '%"></i>';
+    if (dl){
+      var brEl = document.querySelector('.breadth');
+      if (brEl) brEl.setAttribute('aria-label', 'Market breadth, ' + dl);
+    }
+    /* The index cells and the home sub-line are global-header content.
+       Sector and stock-detail views put their own summary in those slots,
+       so only the home / search header takes them. */
+    if (detailSym !== null || current !== null) return;
+    document.getElementById('mktGrid').innerHTML =
+        idxCell('DSEX', idx.DSEX) + idxCell('DS30', idx.DS30) + idxCell('DSES', idx.DSES)
+      + '<div class="cell glass"><div class="lab">Turnover</div><div class="val">৳' + turnoverCr.toFixed(1) + ' cr</div><div class="chg fl">' + num(t.trades).toLocaleString('en-US') + ' trades</div></div>'
+      + '<div class="cell glass"><div class="lab">Market Cap</div><div class="val">৳' + mcapLakhCr.toFixed(2) + ' lakh cr</div><div class="chg fl">' + (tradeTimeTxt ? 'Last trade ' + tradeTimeTxt : '—') + '</div></div>';
     var higher = SECTORS.filter(function(s){ return stats(s).avg > 0; }).length;
-    var dl = j.session && j.session.date ? dateLine(j.session.date) : '';
     if (dl) document.getElementById('mainSub').innerHTML = dl + ' · <b>' + higher + ' of 20 sectors closed higher</b>';
     if (foot) foot.textContent = 'Source: DSE live · Last trade ' + String(t.tradeTime || '');
   }
+  /* The main script's render functions call this after every view change,
+     so a re-render can never leave the baked snapshot header on screen
+     once live market data has arrived. */
+  window.__dseLiveHeader = function(){ if (lastMarket) applyMarketHeader(lastMarket); };
   function refreshView(){
     var y = window.scrollY || 0;
     if (detailSym !== null) openStock(detailSym, detailSector, true, true);
