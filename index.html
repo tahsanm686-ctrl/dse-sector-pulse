@@ -132,6 +132,40 @@
   .mrow .mright{text-align:right;flex:0 0 auto}
   .mrow .mprice{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
   .mrow .mpct{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+  tbody tr.clickable{cursor:pointer}
+  tbody tr.clickable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .dhead{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin:18px 0 6px}
+  .dhead .dsym{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:.01em;line-height:1.1}
+  .dhead .dco{color:var(--muted);font-size:15px;margin-top:4px}
+  .chip{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(139,155,255,.4);border-radius:99px;padding:3px 10px;margin-left:10px;vertical-align:middle}
+  .dprice{text-align:right}
+  .dprice .big{font-size:clamp(30px,4vw,42px);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05}
+  .dprice .chgline{font-size:16px;font-weight:700;margin-top:2px}
+  .dprice .prev{color:var(--muted);font-size:13px;margin-top:2px}
+  .secttl{font-size:16px;font-weight:700;margin:22px 0 10px}
+  .chartbox{border-radius:16px;padding:16px 16px 8px}
+  .chartbox svg{width:100%;height:auto;display:block}
+  .chartnote{color:var(--muted);font-size:12.5px;padding:6px 2px 10px}
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .stat{border-radius:14px;padding:12px 14px}
+  .stat .lab{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;font-weight:600}
+  .stat .v{font-size:19px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+  .stat .s{font-size:12px;color:var(--muted);margin-top:1px}
+  .rangewrap{border-radius:16px;padding:16px 18px}
+  .rangelab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .rangelab b{color:var(--text);font-variant-numeric:tabular-nums}
+  .rangebar{position:relative;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--red),#5b6a8c,var(--green))}
+  .rangemark{position:absolute;top:50%;width:16px;height:16px;border-radius:99px;background:#fff;border:3px solid var(--bg);transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+  .fundlist{border-radius:16px;overflow:hidden}
+  .fundrow{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .fundrow:last-child{border-bottom:0}
+  .fundrow .fl{flex:1;min-width:0}
+  .fundrow .ft{font-weight:600;font-size:15px}
+  .fundrow .fs{color:var(--muted);font-size:12.5px}
+  .fundrow a{color:var(--accent);font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap}
+  .fundrow a:hover{text-decoration:underline}
+  .dbtn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:11px 18px;font-weight:700;font-size:14.5px;color:#0a0f1e;background:var(--accent);text-decoration:none;margin-top:14px}
+  .dbtn:hover{filter:brightness(1.1)}
   footer{margin-top:26px;color:var(--muted2);font-size:12.5px}
   @media (max-width:760px){
     .movers-grid{grid-template-columns:1fr}
@@ -242,6 +276,11 @@ var SECTORS = [
 var main = document.getElementById('main');
 var q = document.getElementById('q');
 var current = null;
+var detailSym = null;
+var detailSector = null;
+var detailFrom = 'grid';
+var EXTRA = {};   /* symbol -> {ycp,open,high,low,volume,value,trades,category} from live DSE feed */
+var HISTORY = {}; /* symbol -> [ltp,...] collected from live syncs this session */
 
 function fmt(n){ return n.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 function cls(v){ return v>0 ? 'up' : (v<0 ? 'dn' : 'fl'); }
@@ -309,7 +348,7 @@ function setGlobalHeader(){
 }
 function setSectorHeader(s, st){
   document.getElementById('mainTitle').textContent = s.name;
-  document.getElementById('mainSub').innerHTML = 'Monday, 23 November 2026 · <b>' + st.total + ' STOCKS</b> · গড় পরিবর্তন <span class="' + cls(st.avg) + '" style="font-weight:700">' + arrow(st.avg) + ' ' + Math.abs(st.avg).toFixed(2) + '%</span>';
+  document.getElementById('mainSub').innerHTML = 'Monday, 23 November 2026 · <b>' + st.total + ' STOCKS</b> · গড় পরিবর্তন <span class="' + cls(st.avg) + '" style="font-weight:700">' + arrow(st.avg) + ' ' + Math.abs(st.avg).toFixed(2) + '%</span> · স্টকগুলো % পরিবর্তন অনুযায়ী উপর থেকে নিচে সাজানো';
   document.getElementById('breadthNums').innerHTML = '<span><b class="b-up">' + st.up + '</b>up</span><span><b class="b-gr">' + st.flat + '</b>flat</span><span><b class="b-dn">' + st.down + '</b>down</span>';
   var tot = Math.max(st.total, 1);
   var wu = (st.up/tot*100).toFixed(1), wf = (st.flat/tot*100).toFixed(1), wd = (100 - st.up/tot*100 - st.flat/tot*100).toFixed(1);
@@ -325,7 +364,7 @@ function setSectorHeader(s, st){
 function moverRowHtml(item, idx){
   var st = item.st;
   var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
-  return '<button type="button" class="mrow" data-sector="' + item.sectorId + '" aria-label="' + st[0] + ' — ' + item.sector + ' সেক্টর দেখুন">'
+  return '<button type="button" class="mrow" data-sym="' + st[0] + '" data-sector="' + item.sectorId + '" aria-label="' + st[0] + ' — স্টক বিস্তারিত দেখুন">'
     + '<span class="rank">' + (idx+1) + '</span>'
     + '<span class="minfo"><span class="msym">' + st[0] + '</span><span class="mco" style="display:block">' + st[1] + ' · ' + item.sector + '</span></span>'
     + '<span class="mright"><span class="mprice" style="display:block">৳' + fmt(st[2]) + '</span><span class="mpct ' + cls(v) + '">' + arrow(v) + ' ' + pctTxt(v) + '</span></span>'
@@ -355,6 +394,7 @@ function moversHtml(){
 
 function renderGrid(){
   current = null;
+  detailSym = null;
   setGlobalHeader();
   var sorted = SECTORS.slice().sort(function(a,b){ return stats(b).avg - stats(a).avg; });
   var higher = sorted.filter(function(s){ return stats(s).avg > 0; }).length;
@@ -384,7 +424,15 @@ function renderGrid(){
   }
   var mrows = main.querySelectorAll('.mrow');
   for (var j=0;j<mrows.length;j++){
-    mrows[j].addEventListener('click', function(){ openSector(this.getAttribute('data-sector')); });
+    mrows[j].addEventListener('click', function(){ openStock(this.getAttribute('data-sym'), this.getAttribute('data-sector')); });
+  }
+}
+
+function bindStockRows(scope){
+  var rows = scope.querySelectorAll('tr.clickable');
+  for (var i=0;i<rows.length;i++){
+    rows[i].addEventListener('click', function(){ openStock(this.getAttribute('data-sym'), this.getAttribute('data-sector')); });
+    rows[i].addEventListener('keydown', function(e){ if (e.key==='Enter' || e.key===' '){ e.preventDefault(); openStock(this.getAttribute('data-sym'), this.getAttribute('data-sector')); } });
   }
 }
 
@@ -393,12 +441,12 @@ function renderTable(rowsHtml, emptyMsg){
   return '<div class="tablewrap glass"><table><thead><tr><th>Stock</th><th>Price</th><th>Change</th><th>Market Cap</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
 }
 
-function rowsFor(stocks, sectorName){
+function rowsFor(stocks, sectorName, sectorId){
   var html = '';
   stocks.forEach(function(st){
     var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
     var chgCell = '<td class="' + cls(v) + '" style="font-weight:700">' + arrow(v) + ' ' + pctTxt(v) + '</td>';
-    html += '<tr><td><span class="sym">' + st[0] + '</span><div class="cname">' + st[1] + (sectorName ? ' · ' + sectorName : '') + '</div></td>'
+    html += '<tr class="clickable" tabindex="0" data-sym="' + st[0] + '" data-sector="' + (sectorId || '') + '" title="বিস্তারিত দেখতে ক্লিক করুন"><td><span class="sym">' + st[0] + '</span><div class="cname">' + st[1] + (sectorName ? ' · ' + sectorName : '') + '</div></td>'
       + '<td class="price">৳' + fmt(st[2]) + '</td>'
       + chgCell
       + '<td>' + (st[4] ? st[4] : '<span style="color:var(--muted2)">—</span>') + '</td></tr>';
@@ -410,36 +458,195 @@ function openSector(id, noScroll){
   var s = null;
   SECTORS.forEach(function(x){ if (x.id===id) s = x; });
   if (!s) return;
+  detailSym = null;
   current = id;
   q.value = '';
   var st = stats(s);
   setSectorHeader(s, st);
+  /* Stocks sorted top-to-bottom by % change (highest gainer first);
+     re-sorted on every live sync because openSector re-renders the view. */
+  var sortedStocks = s.stocks.slice().sort(function(a,b){
+    var av = (a[3]===null||a[3]===undefined)?0:a[3];
+    var bv = (b[3]===null||b[3]===undefined)?0:b[3];
+    if (bv !== av) return bv - av;
+    return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0);
+  });
   main.innerHTML = '<div class="panel">'
     + '<button class="backbtn glass" id="back">‹ সব সেক্টর</button>'
     + '<div style="margin-top:14px">'
-    + renderTable(rowsFor(s.stocks, null), 'কোনো স্টক পাওয়া যায়নি')
+    + renderTable(rowsFor(sortedStocks, null, s.id), 'কোনো স্টক পাওয়া যায়নি')
     + '</div></div>';
   document.getElementById('back').addEventListener('click', renderGrid);
+  bindStockRows(main);
+  if (!noScroll) window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function findStock(sym){
+  var found = null;
+  SECTORS.forEach(function(s){
+    s.stocks.forEach(function(st){ if (st[0] === sym) found = {st:st, sector:s}; });
+  });
+  return found;
+}
+function prevCloseOf(st, ex){
+  if (ex && ex.ycp) return ex.ycp;
+  var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
+  if (v <= -100) return st[2];
+  return st[2] / (1 + v/100);
+}
+function fmtVol(n){
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (n >= 1e7) return (n/1e7).toFixed(2) + ' কোটি';
+  if (n >= 1e5) return (n/1e5).toFixed(2) + ' লাখ';
+  return Number(n).toLocaleString('en-US');
+}
+function chartSvg(st, ex){
+  var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
+  var col = v >= 0 ? '#2fe07a' : '#ff5f7e';
+  var ycp = prevCloseOf(st, ex);
+  var pts = [{lab:'আগের বন্ধ', val:ycp}];
+  var hist = HISTORY[st[0]] || [];
+  if (hist.length >= 2){
+    hist.forEach(function(p, i){ pts.push({lab: i === hist.length-1 ? 'বর্তমান' : '', val:p}); });
+  } else {
+    if (ex && ex.open) pts.push({lab:'ওপেন', val:ex.open});
+    pts.push({lab:'বর্তমান', val:st[2]});
+  }
+  var vals = pts.map(function(p){ return p.val; });
+  if (ex && ex.low) vals.push(ex.low);
+  if (ex && ex.high) vals.push(ex.high);
+  var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+  if (mx - mn < 0.0001){ mx += 1; mn -= 1; }
+  var padV = (mx - mn) * 0.18; mn -= padV; mx += padV;
+  var W = 720, H = 250, PL = 14, PR = 14, PT = 30, PB = 34;
+  function X(i){ return PL + (W - PL - PR) * (pts.length === 1 ? 0.5 : i/(pts.length-1)); }
+  function Y(val){ return PT + (H - PT - PB) * (1 - (val - mn)/(mx - mn)); }
+  var line = pts.map(function(p, i){ return X(i).toFixed(1) + ',' + Y(p.val).toFixed(1); }).join(' ');
+  var area = 'M' + X(0).toFixed(1) + ',' + (H-PB) + ' L' + pts.map(function(p,i){ return X(i).toFixed(1) + ',' + Y(p.val).toFixed(1); }).join(' L') + ' L' + X(pts.length-1).toFixed(1) + ',' + (H-PB) + ' Z';
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + st[0] + ' price chart">';
+  for (var g = 0; g <= 3; g++){
+    var gy = PT + (H - PT - PB) * g/3;
+    s += '<line x1="' + PL + '" y1="' + gy + '" x2="' + (W-PR) + '" y2="' + gy + '" stroke="rgba(255,255,255,.07)" stroke-width="1"/>';
+  }
+  if (ex && ex.high && ex.low){
+    s += '<line x1="' + PL + '" y1="' + Y(ex.high).toFixed(1) + '" x2="' + (W-PR) + '" y2="' + Y(ex.high).toFixed(1) + '" stroke="rgba(255,255,255,.35)" stroke-width="1" stroke-dasharray="5 5"/>';
+    s += '<line x1="' + PL + '" y1="' + Y(ex.low).toFixed(1) + '" x2="' + (W-PR) + '" y2="' + Y(ex.low).toFixed(1) + '" stroke="rgba(255,255,255,.35)" stroke-width="1" stroke-dasharray="5 5"/>';
+    s += '<text x="' + (W-PR) + '" y="' + (Y(ex.high)-6).toFixed(1) + '" fill="#9aa5bf" font-size="12" text-anchor="end">দিনের সর্বোচ্চ ৳' + fmt(ex.high) + '</text>';
+    s += '<text x="' + (W-PR) + '" y="' + (Y(ex.low)+16).toFixed(1) + '" fill="#9aa5bf" font-size="12" text-anchor="end">দিনের সর্বনিম্ন ৳' + fmt(ex.low) + '</text>';
+  }
+  s += '<path d="' + area + '" fill="' + col + '" opacity="0.14"/>';
+  s += '<polyline points="' + line + '" fill="none" stroke="' + col + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  pts.forEach(function(p, i){
+    s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.val).toFixed(1) + '" r="4.5" fill="' + col + '" stroke="#05080f" stroke-width="2"/>';
+    s += '<text x="' + X(i).toFixed(1) + '" y="' + (Y(p.val)-12).toFixed(1) + '" fill="#eef1f8" font-size="13" font-weight="700" text-anchor="middle">৳' + fmt(p.val) + '</text>';
+    if (p.lab) s += '<text x="' + X(i).toFixed(1) + '" y="' + (H-10) + '" fill="#9aa5bf" font-size="12.5" text-anchor="middle">' + p.lab + '</text>';
+  });
+  s += '</svg>';
+  return s;
+}
+function statCell(lab, val, sub){
+  return '<div class="stat glass"><div class="lab">' + lab + '</div><div class="v">' + val + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>';
+}
+function openStock(sym, sectorId, keepFrom, noScroll){
+  var f = findStock(sym);
+  if (!f) return;
+  if (!keepFrom){
+    detailFrom = q.value.trim() ? 'search' : (current !== null ? 'sector' : 'grid');
+  }
+  detailSym = sym;
+  detailSector = sectorId || f.sector.id;
+  var st = f.st, s = f.sector;
+  var ex = EXTRA[sym] || null;
+  var v = (st[3] === null || st[3] === undefined) ? 0 : st[3];
+  var ycp = prevCloseOf(st, ex);
+  var chgAmt = st[2] - ycp;
+  var profileUrl = 'https://www.dse.com.bd/company/' + encodeURIComponent(sym);
+  document.getElementById('mainTitle').textContent = sym;
+  document.getElementById('mainSub').innerHTML = st[1] + ' · <b>' + s.name + '</b>';
+  var mg = document.getElementById('mktGrid');
+  mg.innerHTML =
+      '<div class="cell glass"><div class="lab">সর্বশেষ দাম</div><div class="val">৳' + fmt(st[2]) + '</div><div class="chg ' + cls(v) + '">' + arrow(v) + ' ' + pctTxt(v) + '</div></div>'
+    + '<div class="cell glass"><div class="lab">আগের বন্ধ</div><div class="val">৳' + fmt(ycp) + '</div><div class="chg fl">পরিবর্তন ' + (chgAmt>0?'+':chgAmt<0?'−':'') + '৳' + fmt(Math.abs(chgAmt)) + '</div></div>'
+    + '<div class="cell glass"><div class="lab">ভলিউম</div><div class="val">' + (ex ? fmtVol(ex.volume) : '—') + '</div><div class="chg fl">' + (ex ? Number(ex.trades).toLocaleString('en-US') + ' trades' : 'লাইভ সিঙ্কে হালনাগাদ হয়') + '</div></div>'
+    + '<div class="cell glass"><div class="lab">Market Cap</div><div class="val">' + (st[4] || '—') + '</div><div class="chg fl">' + s.name + '</div></div>';
+  mg.setAttribute('aria-label', sym + ' summary');
+
+  var dayRange = '';
+  if (ex && ex.high > ex.low){
+    var pos = Math.max(0, Math.min(100, (st[2]-ex.low)/(ex.high-ex.low)*100));
+    dayRange = '<div class="secttl">দিনের দামের পরিসর</div><div class="rangewrap glass">'
+      + '<div class="rangelab"><span>সর্বনিম্ন <b>৳' + fmt(ex.low) + '</b></span><span>বর্তমান <b>৳' + fmt(st[2]) + '</b></span><span>সর্বোচ্চ <b>৳' + fmt(ex.high) + '</b></span></div>'
+      + '<div class="rangebar"><span class="rangemark" style="left:' + pos.toFixed(1) + '%"></span></div></div>';
+  }
+  var liveNote = ex ? '' : 'লাইভ সিঙ্ক হলে ওপেন, হাই/লো, ভলিউমসহ আজকের পূর্ণ তথ্য এখানে হালনাগাদ হবে';
+  var stats =
+      statCell('সর্বশেষ দাম (LTP)', '৳' + fmt(st[2]), arrow(v) + ' ' + pctTxt(v) + ' আজ')
+    + statCell('আগের বন্ধ (YCP)', '৳' + fmt(ycp), '')
+    + statCell('ওপেন', ex && ex.open ? '৳' + fmt(ex.open) : '—', liveNote)
+    + statCell('দিনের সর্বোচ্চ', ex && ex.high ? '৳' + fmt(ex.high) : '—', liveNote)
+    + statCell('দিনের সর্বনিম্ন', ex && ex.low ? '৳' + fmt(ex.low) : '—', liveNote)
+    + statCell('ভলিউম', ex ? fmtVol(ex.volume) : '—', ex ? 'আজ মোট লেনদেনকৃত শেয়ার' : liveNote)
+    + statCell('টার্নওভার', ex ? '৳' + fmt(ex.value) + 'M' : '—', liveNote)
+    + statCell('ট্রেড সংখ্যা', ex ? Number(ex.trades).toLocaleString('en-US') : '—', liveNote)
+    + statCell('Market Cap', st[4] || '—', s.name + ' সেক্টর')
+    + statCell('ক্যাটাগরি', ex && ex.category ? ex.category : '—', liveNote);
+
+  var fundRows = [
+    ['P/E Ratio', 'মূল্য-আয় অনুপাত — সর্বশেষ অডিটেড আয়ের ভিত্তিতে'],
+    ['EPS', 'শেয়ারপ্রতি আয় (সর্বশেষ আর্থিক বছর / প্রান্তিক)'],
+    ['NAV', 'শেয়ারপ্রতি নিট সম্পদ মূল্য'],
+    ['ডিভিডেন্ড ইতিহাস', 'সর্বশেষ ঘোষিত ক্যাশ / স্টক ডিভিডেন্ড ও আগের বছরগুলো'],
+    ['শেয়ারহোল্ডিং', 'স্পনসর-পরিচালক · সরকারি · প্রাতিষ্ঠানিক · বিদেশি · পাবলিক']
+  ];
+  var fundHtml = '';
+  fundRows.forEach(function(r){
+    fundHtml += '<div class="fundrow"><div class="fl"><div class="ft">' + r[0] + '</div><div class="fs">' + r[1] + '</div></div><a href="' + profileUrl + '" target="_blank" rel="noopener">DSE প্রোফাইলে দেখুন ↗</a></div>';
+  });
+
+  main.innerHTML = '<div class="panel">'
+    + '<button class="backbtn glass" id="backStock">‹ ফিরে যান</button>'
+    + '<div class="dhead"><div><div class="dsym">' + sym + '<span class="chip">' + s.name + '</span></div><div class="dco">' + st[1] + '</div></div>'
+    + '<div class="dprice"><div class="big">৳' + fmt(st[2]) + '</div><div class="chgline ' + cls(v) + '">' + arrow(v) + ' ' + (chgAmt>0?'+':chgAmt<0?'−':'') + '৳' + fmt(Math.abs(chgAmt)) + ' (' + pctTxt(v) + ')</div><div class="prev">আগের বন্ধ ৳' + fmt(ycp) + '</div></div></div>'
+    + '<div class="secttl">দামের চার্ট</div>'
+    + '<div class="chartbox glass">' + chartSvg(st, ex) + '<div class="chartnote">আগের বন্ধ দাম থেকে আজকের সর্বশেষ দাম পর্যন্ত — লাইভ সিঙ্কের প্রতিটি আপডেটে চার্টে নতুন পয়েন্ট যোগ হয়।</div></div>'
+    + dayRange
+    + '<div class="secttl">আজকের লেনদেন</div><div class="statgrid">' + stats + '</div>'
+    + '<div class="secttl">৫২ সপ্তাহের হাই / লো</div>'
+    + '<div class="rangewrap glass"><div class="fs" style="color:var(--muted);font-size:13.5px;line-height:1.6">৫২ সপ্তাহের সর্বোচ্চ ও সর্বনিম্ন দাম DSE-র লাইভ প্রাইস ফিডে থাকে না — এটি <b style="color:var(--text)">' + sym + '</b>-এর অফিসিয়াল DSE কোম্পানি প্রোফাইলে “Last 52 Weeks” অংশে হালনাগাদ থাকে।</div>'
+    + '<a class="dbtn" href="' + profileUrl + '" target="_blank" rel="noopener">DSE প্রোফাইলে ৫২ সপ্তাহের হাই/লো দেখুন ↗</a></div>'
+    + '<div class="secttl">মৌলিক তথ্য — P/E · EPS · NAV · ডিভিডেন্ড · শেয়ারহোল্ডিং</div>'
+    + '<div class="fundlist glass">' + fundHtml + '</div>'
+    + '<a class="dbtn" href="' + profileUrl + '" target="_blank" rel="noopener">' + sym + '-এর পূর্ণ DSE প্রোফাইল খুলুন ↗</a>'
+    + '</div>';
+  document.getElementById('backStock').addEventListener('click', function(){
+    var from = detailFrom, sec = detailSector;
+    detailSym = null;
+    if (from === 'sector' && sec) openSector(sec);
+    else if (from === 'search') doSearch();
+    else { q.value=''; renderGrid(); }
+  });
   if (!noScroll) window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function doSearch(){
+  detailSym = null;
   var v = q.value.trim().toLowerCase();
   if (!v){ renderGrid(); return; }
   setGlobalHeader();
   var hits = [];
   SECTORS.forEach(function(s){
     s.stocks.forEach(function(st){
-      if (st[0].toLowerCase().indexOf(v) > -1 || st[1].toLowerCase().indexOf(v) > -1) hits.push([st, s.name]);
+      if (st[0].toLowerCase().indexOf(v) > -1 || st[1].toLowerCase().indexOf(v) > -1) hits.push([st, s.name, s.id]);
     });
   });
   var html = '<div class="panel"><button class="backbtn glass" id="back2">‹ সব সেক্টর</button>'
     + '<div class="phead"><h2>“' + q.value.trim().replace(/</g,'&lt;') + '” — ' + hits.length + 'টি স্টক মিলেছে</h2></div>';
   var rows = '';
-  hits.forEach(function(h){ rows += rowsFor([h[0]], h[1]); });
+  hits.forEach(function(h){ rows += rowsFor([h[0]], h[1], h[2]); });
   html += renderTable(rows, 'কোনো স্টক মেলেনি — অন্য নাম বা symbol দিয়ে চেষ্টা করুন') + '</div>';
   main.innerHTML = html;
   document.getElementById('back2').addEventListener('click', function(){ q.value=''; renderGrid(); });
+  bindStockRows(main);
 }
 
 var t;
@@ -458,6 +665,7 @@ renderGrid();
   var btn = document.getElementById('liveBtn');
   var foot = document.getElementById('footSrc');
   var lastOk = null;        // Date of last successful DSE sync
+  var lastMarket = null;    // last good market payload — re-applied after each re-render
   var lastOkTxt = '';
   var nextAt = 0;           // ms epoch of next scheduled auto fetch
   var fetching = false;
@@ -485,7 +693,10 @@ renderGrid();
     return new Promise(function(resolve, reject){
       var ctrl = ('AbortController' in window) ? new AbortController() : null;
       var timer = setTimeout(function(){ if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, ms);
-      fetch(url, {cache:'no-store', signal: ctrl ? ctrl.signal : undefined})
+      /* Unique URL per fetch: an intermediary/CDN cache must never serve
+         last minute's payload as this minute's prices. */
+      var bust = url + (url.indexOf('?') > -1 ? '&' : '?') + '_ts=' + Date.now();
+      fetch(bust, {cache:'no-store', signal: ctrl ? ctrl.signal : undefined})
         .then(function(r){ clearTimeout(timer); if (!r.ok) throw new Error('http '+r.status); return r.json(); })
         .then(resolve, reject);
     });
@@ -514,13 +725,35 @@ renderGrid();
         var r = map[st[0]];
         if (!r) return;
         hit++;
-        var ltp = num(r[ci.ltp]), close = num(r[ci.close]);
+        var ltp = num(r[ci.ltp]), ycp = num(r[ci.ycp]), close = num(r[ci.close]);
         var pctRaw = r[ci.percent];
-        var price = (ltp > 0) ? ltp : close;
+        /* DSE sends close=0 for every stock while the market is open, and
+           ltp=0 / percent=null for stocks not yet traded today. Fall back
+           ltp -> ycp -> close -> last known price so a stock's price is
+           never wiped to ৳0.00 by a sync. */
+        var price = (ltp > 0) ? ltp : (ycp > 0 ? ycp : (close > 0 ? close : st[2]));
         var sh = impliedShares(st[0], st[4], st[2]);
-        st[2] = price;
-        st[3] = (pctRaw === null || pctRaw === undefined) ? 0 : Math.round(num(pctRaw)*100)/100;
-        if (sh) st[4] = fmtCapB(sh * price / 1e9);
+        if (price > 0){
+          st[2] = price;
+          if (pctRaw !== null && pctRaw !== undefined) st[3] = Math.round(num(pctRaw)*100)/100;
+          else if (ltp <= 0) st[3] = 0;
+          if (sh) st[4] = fmtCapB(sh * price / 1e9);
+        }
+        EXTRA[st[0]] = {
+          ycp: ci.ycp !== undefined ? num(r[ci.ycp]) : 0,
+          open: ci.open !== undefined ? num(r[ci.open]) : 0,
+          high: ci.high !== undefined ? num(r[ci.high]) : 0,
+          low: ci.low !== undefined ? num(r[ci.low]) : 0,
+          volume: ci.volume !== undefined ? num(r[ci.volume]) : 0,
+          value: ci.value !== undefined ? num(r[ci.value]) : 0,
+          trades: ci.trades !== undefined ? num(r[ci.trades]) : 0,
+          category: ci.category !== undefined ? String(r[ci.category] || '') : ''
+        };
+        if (price > 0){
+          var h = HISTORY[st[0]] || (HISTORY[st[0]] = []);
+          if (!h.length || h[h.length-1] !== price) h.push(price);
+          if (h.length > 40) h.shift();
+        }
       });
     });
     return hit;
@@ -531,7 +764,7 @@ renderGrid();
       + '<div class="chg ' + cls(v) + '">' + arrow(v) + ' ' + fmt(Math.abs(chg)) + ' (' + (v>0?'+':v<0?'−':'') + Math.abs(v).toFixed(2) + '%)</div></div>';
   }
   function applyMarketHeader(j){
-    if (current !== null || q.value.trim()) return; // sector/search view keeps its own header
+    if (detailSym !== null || current !== null || q.value.trim()) return; // detail/sector/search view keeps its own header
     var idx = {}; j.indices.forEach(function(x){ idx[x.key] = x; });
     var t = j.totals, b = j.breadth;
     var turnoverCr = num(t.turnover) / 10;
@@ -559,9 +792,11 @@ renderGrid();
   }
   function refreshView(){
     var y = window.scrollY || 0;
-    if (q.value.trim()) doSearch();
+    if (detailSym !== null) openStock(detailSym, detailSector, true, true);
+    else if (q.value.trim()) doSearch();
     else if (current !== null) openSector(current, true);
     else renderGrid();
+    if (lastMarket) applyMarketHeader(lastMarket);
     window.scrollTo(0, y);
   }
   function setStatus(){
@@ -598,22 +833,25 @@ renderGrid();
   function fetchNow(){
     if (fetching) return Promise.resolve(false);
     fetching = true; btn.disabled = true; setStatus();
-    var pOk = fetchJson(PRICES_URL, function(j){ return j && j.cols && j.rows; });
-    var mOk = fetchJson(MARKET_URL, function(j){ return j && j.indices && j.totals; });
-    return Promise.all([pOk, mOk]).then(function(res){
-      var hit = applyPrices(res[0]);
-      refreshView();
-      applyMarketHeader(res[1]);
-      lastOk = new Date(); lastOkTxt = clockTxt(dhakaNow());
+    /* Prices and market header sync independently: a failure or delay in
+       the market endpoint must never block the per-stock price update. */
+    var priceHit = 0;
+    var pOk = fetchJson(PRICES_URL, function(j){ return j && j.cols && j.rows; }).then(function(j){
+      priceHit = applyPrices(j);
+      if (priceHit > 0) refreshView();
+      return true;
+    }).catch(function(){ return false; });
+    var mOk = fetchJson(MARKET_URL, function(j){ return j && j.indices && j.totals; }).then(function(j){
+      lastMarket = j;
+      applyMarketHeader(j);
+      return true;
+    }).catch(function(){ return false; });
+    return Promise.all([pOk, mOk]).then(function(){
+      if (priceHit > 0){ lastOk = new Date(); lastOkTxt = clockTxt(dhakaNow()); }
       fetching = false; btn.disabled = false;
       nextAt = Date.now() + 60000;
       setStatus();
-      return hit > 0;
-    }).catch(function(){
-      fetching = false; btn.disabled = false;
-      nextAt = Date.now() + 60000;
-      setStatus();
-      return false;
+      return priceHit > 0;
     });
   }
   btn.addEventListener('click', function(){ fetchNow(); });
